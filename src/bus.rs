@@ -23,6 +23,7 @@ use crate::cpu::Cpu6502;
     |___________________|
 
     OBS:
+    - barramento de 16bits
     - memória Ram tem 8kb porém só 2kb são utilizados
 
 */

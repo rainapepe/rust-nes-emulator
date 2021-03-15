@@ -1,4 +1,5 @@
 use super::addres_mode::AddresMode;
+use super::instruction::get_instruction_by_id;
 use super::opcode::Opcode;
 use super::Cpu6502;
 
@@ -44,19 +45,25 @@ impl Cpu6502 {
     // It is merely a convenience function to turn the binary instruction code into
     // human readable form. Its included as part of the emulator because it can take
     // advantage of many of the CPUs internal operations to do this.
-    pub fn disassemble(start: u16, stop: u16) {
+    pub fn disassemble(&self, start: u16, stop: u16) {
         let addr: u32 = start as u32;
         let value: u8 = 0;
         let lo: u8 = 0;
         let hi: u8 = 0;
 
-        // let mapLines
+        // criar map
+        // let mapLines = []
         let mut line_addr: u16 = 0;
 
         while addr <= stop as u32 {
             line_addr = addr as u16;
 
             let s_inst = format!("${}: ", to_hex(addr, 4));
+
+            let opcode = self.read(addr);
+            addr += 1;
+            let name = get_instruction_by_id(opcode).name;
+            s_inst += &format!("{} ", name);
         }
     }
 }
