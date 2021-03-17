@@ -13,17 +13,6 @@ pub struct Instruction {
     pub name: &'static str,
 }
 
-impl Instruction {
-    fn xxx() -> Instruction {
-        Instruction {
-            opcode: Opcode::XXX,
-            addres_mode: AddresMode::IMP,
-            cycles: 2,
-            name: "???",
-        }
-    }
-}
-
 impl Instruct {
     fn get(&self) -> Instruction {
         Instruction {

@@ -16,13 +16,13 @@ impl Cpu6502 {
         let lo = self.read(self.addr_abs + 0) as u16;
         let hi = self.read(self.addr_abs + 1) as u16;
 
-        self.pc = (hi << 0) | lo;
+        self.pc = (hi << 8) | lo;
 
         // limpar registradores
         self.a = 0;
         self.x = 0;
         self.y = 0;
-        self.stkp = 0;
+        self.stkp = 0xFD;
         self.status = 0 | Flags6502::U as u8;
 
         // limpar variaveis auxiliares
@@ -117,7 +117,24 @@ impl Cpu6502 {
 
             self.set_flag(Flags6502::U, true);
 
-            self.pc += 1;
+            self.pc_next();
+
+            let instruction = self.get_instruction();
+            
+            self.cycles = instruction.cycles;
+
+            // carregando o fetch data de acordo com o addres mode
+            let aditional_cycle_1 = self.addres_mode(instruction.addres_mode);
+            // executando o opcode
+            let aditional_cycle_2 = self.opcode(instruction.opcode);
+
+            self.cycles += aditional_cycle_1 + aditional_cycle_2;
+
+            self.set_flag(Flags6502::U, false);
+
+            // Log
         }
+
+        self.cycles -= 1;
     }
 }

@@ -1,7 +1,7 @@
 use super::addres_mode::AddresMode;
 use super::instruction::get_instruction_by_id;
-use super::opcode::Opcode;
 use super::Cpu6502;
+use std::collections::HashMap;
 
 // A convenient utility to convert variables into
 // hex strings because "modern C++"'s method with
@@ -45,25 +45,105 @@ impl Cpu6502 {
     // It is merely a convenience function to turn the binary instruction code into
     // human readable form. Its included as part of the emulator because it can take
     // advantage of many of the CPUs internal operations to do this.
-    pub fn disassemble(&self, start: u16, stop: u16) {
-        let addr: u32 = start as u32;
-        let value: u8 = 0;
-        let lo: u8 = 0;
-        let hi: u8 = 0;
+    pub fn disassemble(&self, start: u16, stop: u16) -> HashMap<u16, String> {
+        let mut addr: u32 = start as u32;
+        let mut value: u8 = 0;
+        let mut lo: u8 = 0;
+        let mut hi: u8 = 0;
 
         // criar map
-        // let mapLines = []
+        let mut map_lines = HashMap::<u16, String>::new();
         let mut line_addr: u16 = 0;
 
         while addr <= stop as u32 {
             line_addr = addr as u16;
 
-            let s_inst = format!("${}: ", to_hex(addr, 4));
+            let mut s_inst = format!("${}: ", to_hex(addr, 4));
 
-            let opcode = self.read(addr);
+            let opcode = self.read(addr as u16);
             addr += 1;
-            let name = get_instruction_by_id(opcode).name;
-            s_inst += &format!("{} ", name);
+            let instruction = get_instruction_by_id(opcode);
+            s_inst += &format!("{} ", instruction.name);
+            
+
+            match instruction.addres_mode {
+                AddresMode::IMP => {
+                    s_inst += " {IMP}";
+                },
+                AddresMode::IMM => {
+                    value = self.bus_read(addr as u16, true);
+                    addr += 1;
+                    s_inst += &format!("#${} {{IMM}}", to_hex(value as u32, 2));
+                },
+                AddresMode::ZP0 => {
+                    lo = self.bus_read(addr as u16, true);
+                    addr+=1;
+                    hi = 0x00;
+                    s_inst += &format!("${} {{ZP0}}", to_hex(lo as u32, 2));
+                },
+                AddresMode::ZPX => {
+                    lo = self.bus_read(addr as u16, true);
+                    addr+=1;
+                    hi = 0x00;
+                    s_inst += &format!("${}, X {{ZPX}}", to_hex(lo as u32, 2));
+                },
+                AddresMode::ZPY => {
+                    lo = self.bus_read(addr as u16, true);
+                    addr+=1;
+                    hi = 0x00;
+                    s_inst += &format!("${}, Y {{ZPY}}", to_hex(lo as u32, 2));
+                },
+                AddresMode::IZX => {
+                    lo = self.bus_read(addr as u16, true);
+                    addr+=1;
+                    hi = 0x00;
+                    s_inst += &format!("${}, X {{IZX}}", to_hex(lo as u32, 2));
+                },
+                AddresMode::IZY => {
+                    lo = self.bus_read(addr as u16, true);
+                    addr+=1;
+                    hi = 0x00;
+                    s_inst += &format!("${}, Y {{IZY}}", to_hex(lo as u32, 2));
+                },
+                AddresMode::ABS => {                    
+                    lo = self.bus_read(addr as u16, true);
+                    addr+=1;
+                    hi = self.bus_read(addr as u16, true);
+                    addr+=1;
+                    s_inst += &format!("${} {{ABS}}", to_hex(((hi << 8) | lo) as u32 , 2));
+                },
+                AddresMode::ABX => {                    
+                    lo = self.bus_read(addr as u16, true);
+                    addr+=1;
+                    hi = self.bus_read(addr as u16, true);
+                    addr+=1;
+                    s_inst += &format!("${}, X {{ABX}}", to_hex(((hi << 8) | lo) as u32 , 2));
+                },
+                AddresMode::ABY => {                    
+                    lo = self.bus_read(addr as u16, true);
+                    addr+=1;
+                    hi = self.bus_read(addr as u16, true);
+                    addr+=1;
+                    s_inst += &format!("${}, Y {{ABY}}", to_hex(((hi << 8) | lo) as u32 , 2));
+                },
+                AddresMode::IND => {
+                    lo = self.bus_read(addr as u16, true);
+                    addr+=1;
+                    hi = self.bus_read(addr as u16, true);
+                    addr+=1;
+                    s_inst += &format!("(${}) {{IND}}", to_hex(((hi << 8) | lo) as u32 , 2));
+                },
+                AddresMode::REL => {
+                    value = self.bus_read(addr as u16, true);
+                    addr+=1;
+                    s_inst += &format!("${} [${}] {{REL}}", to_hex(value as u32 , 2), to_hex(addr + value as u32, 4));
+                },
+                _ => {}
+            };
+
+            map_lines.insert(line_addr, s_inst);
         }
+
+        map_lines
     }
 }
