@@ -14,7 +14,7 @@ pub struct Ppu2C02 {
 	// olc::Sprite sprScreen          =   olc::Sprite(256, 240);
 	// olc::Sprite sprNameTable[2]    = { olc::Sprite(256, 240), olc::Sprite(256, 240) };
 	// olc::Sprite sprPatternTable[2] = { olc::Sprite(128, 128), olc::Sprite(128, 128) };
-    
+    // Test
 }
 
 
