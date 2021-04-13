@@ -96,6 +96,16 @@ impl Cpu6502 {
             }
         }
     }
+
+    pub fn bus_read(&self, addres: u16, read_only: bool) -> u8 {
+        unsafe {
+            if let Some(bus) = self.bus.as_ref() {
+                return bus.read(addres, read_only);
+            }
+        }
+
+        0
+    }
 }
 
 // Funções para manipular flags

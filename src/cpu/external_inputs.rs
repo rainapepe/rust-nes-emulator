@@ -16,13 +16,13 @@ impl Cpu6502 {
         let lo = self.read(self.addr_abs + 0) as u16;
         let hi = self.read(self.addr_abs + 1) as u16;
 
-        self.pc = (hi << 0) | lo;
+        self.pc = (hi << 8) | lo;
 
         // limpar registradores
         self.a = 0;
         self.x = 0;
         self.y = 0;
-        self.stkp = 0;
+        self.stkp = 0xFD;
         self.status = 0 | Flags6502::U as u8;
 
         // limpar variaveis auxiliares

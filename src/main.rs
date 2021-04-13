@@ -1,5 +1,6 @@
 mod bus;
 mod cpu;
+mod ppu;
 
 use bus::Bus;
 
@@ -16,5 +17,5 @@ fn main() {
         cpu.reset();
     }
 
-    println!("nes: {}", nes.read(0x0101));
+    println!("nes: {}", nes.read(0x0101, false));
 }
