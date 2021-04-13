@@ -47,7 +47,7 @@ impl Bus {
         bus
     }
 
-    pub fn read(&self, addres: u16) -> u8 {
+    pub fn read(&self, addres: u16, b_read_only: bool) -> u8 {
         if addres <= 0x1FFF {
             return self.ram[addres as usize & 0x07FF];
         }

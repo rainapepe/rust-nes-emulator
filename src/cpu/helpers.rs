@@ -1,6 +1,4 @@
-use super::addres_mode::AddresMode;
 use super::instruction::get_instruction_by_id;
-use super::opcode::Opcode;
 use super::Cpu6502;
 
 // A convenient utility to convert variables into
@@ -60,7 +58,7 @@ impl Cpu6502 {
 
             let s_inst = format!("${}: ", to_hex(addr, 4));
 
-            let opcode = self.read(addr);
+            let opcode = self.read(addr as u16);
             addr += 1;
             let name = get_instruction_by_id(opcode).name;
             s_inst += &format!("{} ", name);

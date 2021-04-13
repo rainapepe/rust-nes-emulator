@@ -82,7 +82,7 @@ impl Cpu6502 {
     pub fn read(&self, addres: u16) -> u8 {
         unsafe {
             if let Some(bus) = self.bus.as_ref() {
-                return bus.read(addres);
+                return bus.read(addres, false);
             }
         }
 

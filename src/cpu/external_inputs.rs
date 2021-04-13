@@ -115,9 +115,33 @@ impl Cpu6502 {
             // qual é a operação e addresmode na tabela de tradução
             self.opcode = self.read(self.pc);
 
+            // Sempre setar a flag unused para 1 (true)
             self.set_flag(Flags6502::U, true);
 
-            self.pc += 1;
+            // Incrimentar o program counter
+            self.pc_next();
+
+            let instruction = self.get_instruction();
+
+            // numero inicial de ciclos
+            self.cycles = instruction.cycles;
+
+            // aplicar o addres mode e guardar os ciclos adicionais
+            let aditional_cycles1 = self.addres_mode(instruction.addres_mode);
+
+            // executar o opcode e guardar os ciclos adicionais
+            let aditional_cycles2 = self.opcode(instruction.opcode);
+
+            // adicionar ciclos
+            self.cycles += aditional_cycles1 & aditional_cycles2;
+
+            // Sempre setar a flag unused para 1 (true)
+            self.set_flag(Flags6502::U, true);
         }
+
+        self.clock_count += 1;
+
+        // decrementando o numero de ciclos
+        self.cycles -= 1;
     }
 }
