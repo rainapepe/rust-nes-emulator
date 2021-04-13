@@ -1,5 +1,6 @@
 mod bus;
 mod cpu;
+mod mapper;
 mod ppu;
 
 use bus::Bus;
