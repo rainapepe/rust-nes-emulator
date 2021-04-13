@@ -1,18 +1,13 @@
-pub struct Mapper {
-    n_prg_banks: u8,
-    n_chr_banks: u8,
-}
+pub trait Mapper {
+    // fn new(prg_banks: u8, chr_banks: u8) -> Self;
 
-impl Mapper {
-    pub fn new(prg_banks: u8, chr_banks: u8) -> Mapper {
-        let mapper = Mapper {
-            n_prg_banks: prg_banks,
-            n_chr_banks: chr_banks,
-        };
+    // Transform CPU bus address into PRG ROM offset
+    fn cpu_map_read(&self, addr: u16) -> (bool, u32);
+    fn cpu_map_write(&self, addr: u16, data: u8) -> (bool, u32);
 
-        mapper.reset();
-        mapper
-    }
+    // Transform PPU bus address into CHR ROM offset
+    fn ppu_map_read(&self, addr: u16) -> (bool, u32);
+    fn ppu_map_write(&self, addr: u16) -> (bool, u32);
 
-    pub fn reset(&self) {}
+    fn reset(&self);
 }
