@@ -1,4 +1,5 @@
 use crate::cpu::Cpu6502;
+use crate::{cartridge::Cartridge, ppu::Ppu2C02};
 
 /*
      ___________________          __________________       _________________     _____________________      ____________________
@@ -29,15 +30,18 @@ use crate::cpu::Cpu6502;
 */
 
 pub struct Bus {
-    // ppu,
+    pub ppu: Ppu2C02,
     pub cpu: Option<Cpu6502>,
+    pub cartridge: Option<Cartridge>,
     ram: [u8; 2048],
 }
 
 impl Bus {
     pub fn new() -> Bus {
         let mut bus = Bus {
+            ppu: Ppu2C02::new(),
             cpu: None,
+            cartridge: None,
             ram: [0; 2048],
         };
 
@@ -48,6 +52,13 @@ impl Bus {
     }
 
     pub fn read(&self, addres: u16, read_only: bool) -> u8 {
+        if let Some(cartridge) = &self.cartridge {
+            let (read, data) = cartridge.cpu_read(addres);
+
+            if read {
+                return data;
+            }
+        }
         if addres <= 0x1FFF {
             return self.ram[addres as usize & 0x07FF];
         }
@@ -56,8 +67,20 @@ impl Bus {
     }
 
     pub fn write(&mut self, addres: u16, data: u8) {
+        if let Some(cartridge) = &mut self.cartridge {
+            if cartridge.cpu_write(addres, data) {
+                return;
+            }
+        }
         if addres <= 0x1FFF {
             self.ram[addres as usize & 0x07FF] = data;
+        }
+    }
+
+    pub fn insert_cartridge(&mut self, cartridge: Cartridge) {
+        self.cartridge = Some(cartridge);
+        if let Some(cart) = &mut self.cartridge {
+            self.ppu.connect_cartridge(cart);
         }
     }
 }

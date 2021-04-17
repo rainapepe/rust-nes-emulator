@@ -1,8 +1,8 @@
 use super::super::Mapper;
 
 pub struct Mapper000 {
-    prg_banks: u8,
-    chr_banks: u8,
+    pub prg_banks: u8,
+    pub chr_banks: u8,
 }
 
 impl Mapper for Mapper000 {
@@ -41,7 +41,7 @@ impl Mapper for Mapper000 {
         // There is no mapping required for PPU
         // PPU Address Bus          CHR ROM
         // 0x0000 -> 0x1FFF: Map    0x0000 -> 0x1FFF
-        if addr >= 0x0000 && addr <= 0x1FFF {
+        if addr >= 0 && addr <= 0x1FFF {
             return (true, addr as u32);
         }
 
@@ -57,5 +57,12 @@ impl Mapper for Mapper000 {
         }
 
         return (false, 0);
+    }
+}
+
+pub fn create_mapper_000(prg_banks: u8, chr_banks: u8) -> Mapper000 {
+    Mapper000 {
+        prg_banks,
+        chr_banks,
     }
 }
