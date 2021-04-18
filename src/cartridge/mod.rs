@@ -1,6 +1,6 @@
 mod load_file;
 mod memory_access;
-mod structs;
+mod types;
 
 pub use load_file::*;
-pub use structs::*;
+pub use types::*;

@@ -16,7 +16,7 @@ use crate::{cartridge::Cartridge, ppu::Ppu2C02};
              |
              |                   _________________          ______________________       _________________________
              |                  |       8KB       |        |         2KB          |     |                         |
-             |                  |     PATTERN     |        |      NAMETABLE       |     |        PALETTES         |
+             |                  |     PATTERN     |        |      NAMETABLE       |     |        PALETTE          |
              |                  |_________________|        |______________________|     |_________________________|
      ________|__________         0x0000  |  0x1FFF          0x2000     |    0x2FFF       0x3F00      |      0x3FFF
     |                   |                |                             |                             |
@@ -26,6 +26,13 @@ use crate::{cartridge::Cartridge, ppu::Ppu2C02};
     OBS:
     - barramento de 16bits
     - memória Ram tem 8kb porém só 2kb são utilizados
+
+    - PPU:
+        - PATTERN MEMORY: local na memória onde será guardado os tiles(sprites), um tile tem 8x8 pixels, cada tile é composto por
+            16 bytes divididos em dois planos de 8 bytes onde o primeiro plano controla o bit da posição 0 e o segundo plano a posição 1,
+            juntando os dois planos cada posição tem valor de 0 a 3 representando a cor do pixel, onde 0 é transparente
+        - PALETTE MEMORY: lista de paletas / cores
+        - NAMETABLE MEMORY: Vram, controla os tiles que serão apresentados na tela
 
 */
 
