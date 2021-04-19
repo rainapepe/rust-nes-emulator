@@ -1,69 +1,70 @@
-use super::types::{LoopyRegister, Mask, ObjectAttributeEntry, Pixel, PpuControl, Sprite, Status};
+use super::pixel::{Pixel, Sprite};
+use super::types::{LoopyRegister, Mask, ObjectAttributeEntry, PpuControl, Status};
 use crate::cartridge::Cartridge;
 
 pub struct Ppu2C02 {
     // controla os tiles/sprites que serão exibidos na tela
-    table_name: [[u8; 1024]; 2],
+    pub table_name: [[u8; 1024]; 2],
     // memória dos sprites/tiles
-    table_pattern: [[u8; 4096]; 2],
+    pub table_pattern: [[u8; 4096]; 2],
     // paletas/cores
-    table_palette: [u8; 32],
-    cartridge: Option<*mut Cartridge>,
+    pub table_palette: [u8; 32],
+    pub cartridge: Option<*mut Cartridge>,
 
     // auxiliares
-    pal_screen: [Pixel; 0x40],
-    spr_screen: Sprite,
-    spr_name_table: [Sprite; 2],
-    spr_pattern_table: [Sprite; 2],
+    pub pal_screen: [Pixel; 0x40], // pallete screen, são as 64 cores que o nes possui
+    pub spr_screen: Sprite,        // Tela final 256x240
+    pub spr_name_table: [Sprite; 2], // (não usado) visualização da nametables (tela final na memória) as duas são 256x240
+    pub spr_pattern_table: [Sprite; 2], // Visualização da tabela de sprites (background e foregrounds)
 
-    frame_complete: bool,
-    status: Status,
-    mask: Mask,
-    control: PpuControl,
-    vram_addr: LoopyRegister, // Active "pointer" address into nametable to extract background tile info
-    tram_addr: LoopyRegister, // Temporary store of information to be "transferred" into "pointer" at various times
+    pub frame_complete: bool,
+    pub status: Status,
+    pub mask: Mask,
+    pub control: PpuControl,
+    pub vram_addr: LoopyRegister, // Active "pointer" address into nametable to extract background tile info
+    pub tram_addr: LoopyRegister, // Temporary store of information to be "transferred" into "pointer" at various times
 
     // Pixel offset horizontally
-    fine_x: u8,
+    pub fine_x: u8,
 
     // Internal communications
-    address_latch: u8,
-    ppu_data_buffer: u8,
+    pub address_latch: u8,
+    pub ppu_data_buffer: u8,
 
     // Pixel "dot" position information
-    scanline: i16,
-    cycle: i16,
+    pub scanline: i16,
+    pub cycle: i16,
 
     // Background rendering =========================================
-    bg_next_tile_id: u8,
-    bg_next_tile_attrib: u8,
-    bg_next_tile_lsb: u8,
-    bg_next_tile_msb: u8,
-    bg_shifter_pattern_lo: u16,
-    bg_shifter_pattern_hi: u16,
-    bg_shifter_attrib_lo: u16,
-    bg_shifter_attrib_hi: u16,
+    pub bg_next_tile_id: u8,
+    pub bg_next_tile_attrib: u8,
+    pub bg_next_tile_lsb: u8,
+    pub bg_next_tile_msb: u8,
+    pub bg_shifter_pattern_lo: u16,
+    pub bg_shifter_pattern_hi: u16,
+    pub bg_shifter_attrib_lo: u16,
+    pub bg_shifter_attrib_hi: u16,
 
     // Foreground "Sprite" rendering ================================
     // The OAM is an additional memory internal to the PPU. It is
     // not connected via the any bus. It stores the locations of
     // 64off 8x8 (or 8x16) tiles to be drawn on the next frame.
-    oma: [ObjectAttributeEntry; 64],
+    pub oma: [ObjectAttributeEntry; 64],
 
     // A register to store the address when the CPU manually communicates
     // with OAM via PPU registers. This is not commonly used because it
     // is very slow, and instead a 256-Byte DMA transfer is used. See
     // the Bus header for a description of this.
-    oam_addr: u8,
+    pub oam_addr: u8,
 
-    sprite_scanline: [ObjectAttributeEntry; 8],
-    sprite_count: u8,
-    sprite_shifter_pattern_lo: [u8; 8],
-    sprite_shifter_pattern_hi: [u8; 8],
+    pub sprite_scanline: [ObjectAttributeEntry; 8],
+    pub sprite_count: u8,
+    pub sprite_shifter_pattern_lo: [u8; 8],
+    pub sprite_shifter_pattern_hi: [u8; 8],
 
     // Sprite Zero Collision Flags
-    sprite_zero_hit_possible: bool,
-    sprite_zero_being_rendered: bool,
+    pub sprite_zero_hit_possible: bool,
+    pub sprite_zero_being_rendered: bool,
 
     // TODO: ???????????????
     // The OAM is conveniently package above to work with, but the DMA
@@ -71,7 +72,7 @@ pub struct Ppu2C02 {
     // uint8_t* pOAM = (uint8_t*)OAM;
 
     // Interface
-    nmi: bool,
+    pub nmi: bool,
 }
 
 impl Ppu2C02 {

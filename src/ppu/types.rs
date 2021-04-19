@@ -1,14 +1,8 @@
-#[derive(Clone, Copy)]
-pub struct Pixel {}
-
-#[derive(Clone, Copy)]
-pub struct Sprite {}
-
 pub struct Status {
-    unused: u8,
-    sprite_overflow: u8,
-    sprite_zero_hit: u8,
-    vertical_blank: u8,
+    pub unused: u8,
+    pub sprite_overflow: u8,
+    pub sprite_zero_hit: u8,
+    pub vertical_blank: u8,
 }
 
 impl Status {
@@ -31,14 +25,14 @@ impl Status {
 }
 
 pub struct Mask {
-    grayscale: u8,
-    render_background_left: u8,
-    render_sprites_left: u8,
-    render_background: u8,
-    render_sprites: u8,
-    enhance_red: u8,
-    enhance_green: u8,
-    enhance_blue: u8,
+    pub grayscale: u8,
+    pub render_background_left: u8,
+    pub render_sprites_left: u8,
+    pub render_background: u8,
+    pub render_sprites: u8,
+    pub enhance_red: u8,
+    pub enhance_green: u8,
+    pub enhance_blue: u8,
 }
 
 impl Mask {
@@ -65,14 +59,14 @@ impl Mask {
 }
 
 pub struct PpuControl {
-    nametable_x: u8,
-    nametable_y: u8,
-    increment_mode: u8,
-    pattern_sprite: u8,
-    pattern_background: u8,
-    sprite_size: u8,
-    slave_mode: u8, // unused
-    enable_nmi: u8,
+    pub nametable_x: u8,
+    pub nametable_y: u8,
+    pub increment_mode: u8,
+    pub pattern_sprite: u8,
+    pub pattern_background: u8,
+    pub sprite_size: u8,
+    pub slave_mode: u8, // unused
+    pub enable_nmi: u8,
 }
 
 impl PpuControl {
@@ -99,12 +93,12 @@ impl PpuControl {
 }
 
 pub struct LoopyRegister {
-    coarse_x: u16,
-    coarse_y: u16,
-    nametable_x: u16,
-    nametable_y: u16,
-    fine_y: u16,
-    unused: u16,
+    pub coarse_x: u16,
+    pub coarse_y: u16,
+    pub nametable_x: u16,
+    pub nametable_y: u16,
+    pub fine_y: u16,
+    pub unused: u16,
 }
 
 impl LoopyRegister {
@@ -130,10 +124,10 @@ impl LoopyRegister {
 
 #[derive(Copy, Clone)]
 pub struct ObjectAttributeEntry {
-    y: u8,         // Y position of sprite
-    id: u8,        // ID of tile from pattern memory
-    attribute: u8, // Flags define how sprite should be rendered
-    x: u8,         // X position of sprite
+    pub y: u8,         // Y position of sprite
+    pub id: u8,        // ID of tile from pattern memory
+    pub attribute: u8, // Flags define how sprite should be rendered
+    pub x: u8,         // X position of sprite
 }
 
 impl ObjectAttributeEntry {
