@@ -92,6 +92,7 @@ impl PpuControl {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct LoopyRegister {
     pub coarse_x: u16,
     pub coarse_y: u16,

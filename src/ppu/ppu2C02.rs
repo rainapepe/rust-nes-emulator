@@ -49,7 +49,7 @@ pub struct Ppu2C02 {
     // The OAM is an additional memory internal to the PPU. It is
     // not connected via the any bus. It stores the locations of
     // 64off 8x8 (or 8x16) tiles to be drawn on the next frame.
-    pub oma: [ObjectAttributeEntry; 64],
+    pub oam: [ObjectAttributeEntry; 64],
 
     // A register to store the address when the CPU manually communicates
     // with OAM via PPU registers. This is not commonly used because it
@@ -111,7 +111,7 @@ impl Ppu2C02 {
             bg_shifter_attrib_lo: 0,
             bg_shifter_attrib_hi: 0,
 
-            oma: [ObjectAttributeEntry::new(); 64],
+            oam: [ObjectAttributeEntry::new(); 64],
             oam_addr: 0,
             sprite_scanline: [ObjectAttributeEntry::new(); 8],
             sprite_count: 0,
@@ -125,10 +125,10 @@ impl Ppu2C02 {
         }
     }
 
-    fn get_cartridge(&self) -> Option<&Cartridge> {
+    pub fn get_cartridge(&mut self) -> Option<&mut Cartridge> {
         if let Some(cartridge) = self.cartridge {
             unsafe {
-                if let Some(cart) = cartridge.as_ref() {
+                if let Some(cart) = cartridge.as_mut() {
                     return Some(cart);
                 }
             }
@@ -140,5 +140,26 @@ impl Ppu2C02 {
 
     pub fn connect_cartridge(&mut self, cartridge: &mut Cartridge) {
         self.cartridge = Some(cartridge);
+    }
+
+    pub fn reset(&mut self) {
+        self.fine_x = 0x00;
+        self.address_latch = 0x00;
+        self.ppu_data_buffer = 0x00;
+        self.scanline = 0;
+        self.cycle = 0;
+        self.bg_next_tile_id = 0x00;
+        self.bg_next_tile_attrib = 0x00;
+        self.bg_next_tile_lsb = 0x00;
+        self.bg_next_tile_msb = 0x00;
+        self.bg_shifter_pattern_lo = 0x0000;
+        self.bg_shifter_pattern_hi = 0x0000;
+        self.bg_shifter_attrib_lo = 0x0000;
+        self.bg_shifter_attrib_hi = 0x0000;
+        self.status.set_reg(0x00);
+        self.mask.set_reg(0x00);
+        self.control.set_reg(0x00);
+        self.vram_addr.set_reg(0x0000);
+        self.tram_addr.set_reg(0x0000);
     }
 }
