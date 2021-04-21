@@ -1,5 +1,5 @@
 use super::pixel::{Pixel, Sprite};
-use super::types::{LoopyRegister, Mask, ObjectAttributeEntry, PpuControl, Status};
+use super::registers::{LoopyRegister, Mask, ObjectAttributeEntry, PpuControl, Status};
 use crate::cartridge::Cartridge;
 
 pub struct Ppu2C02 {
@@ -65,11 +65,6 @@ pub struct Ppu2C02 {
     // Sprite Zero Collision Flags
     pub sprite_zero_hit_possible: bool,
     pub sprite_zero_being_rendered: bool,
-
-    // TODO: ???????????????
-    // The OAM is conveniently package above to work with, but the DMA
-    // mechanism will need access to it for writing one byute at a time
-    // uint8_t* pOAM = (uint8_t*)OAM;
 
     // Interface
     pub nmi: bool,
@@ -156,10 +151,10 @@ impl Ppu2C02 {
         self.bg_shifter_pattern_hi = 0x0000;
         self.bg_shifter_attrib_lo = 0x0000;
         self.bg_shifter_attrib_hi = 0x0000;
-        self.status.set_reg(0x00);
-        self.mask.set_reg(0x00);
-        self.control.set_reg(0x00);
-        self.vram_addr.set_reg(0x0000);
-        self.tram_addr.set_reg(0x0000);
+        self.status.reg = 0x00;
+        self.mask.reg = 0x00;
+        self.control.reg = 0x00;
+        self.vram_addr.reg = 0x0000;
+        self.tram_addr.reg = 0x0000;
     }
 }

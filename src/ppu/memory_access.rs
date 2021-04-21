@@ -12,11 +12,11 @@ impl Ppu2C02 {
 
             match addr {
                 // Control
-                0x0000 => self.control.get_reg(),
+                0x0000 => self.control.reg,
                 // Mask
-                0x0001 => self.mask.get_reg(),
+                0x0001 => self.mask.reg,
                 // Status
-                0x0002 => self.status.get_reg(),
+                0x0002 => self.status.reg,
                 // OAM Address
                 0x0003 => 0,
                 // OAM Data
@@ -42,7 +42,7 @@ impl Ppu2C02 {
                 // Status
                 0x0002 => {
                     // Clear the vertical blanking flag
-                    self.status.vertical_blank = 0;
+                    self.status.set_vertical_blank(0);
 
                     // Reset Loopy's Address latch flag
                     self.address_latch = 0;
@@ -54,7 +54,7 @@ impl Ppu2C02 {
                     // represent the last PPU bus transaction. Some games "may"
                     // use this noise as valid data (even though they probably
                     // shouldn't)
-                    (self.status.get_reg() & 0xE0) | (self.ppu_data_buffer & 0x1F)
+                    (self.status.reg & 0xE0) | (self.ppu_data_buffer & 0x1F)
                 }
                 // OAM Address - Not Readable
                 0x0003 => 0,
@@ -72,25 +72,23 @@ impl Ppu2C02 {
                     let data = self.ppu_data_buffer;
 
                     // then update the buffer for next time
-                    self.ppu_data_buffer = self.ppu_read(self.vram_addr.get_reg(), false);
+                    self.ppu_data_buffer = self.ppu_read(self.vram_addr.reg, false);
 
                     // All reads from PPU data automatically increment the nametable
                     // address depending upon the mode set in the control register.
                     // If set to vertical mode, the increment is 32, so it skips
                     // one whole nametable row; in horizontal mode it just increments
                     // by 1, moving to the next column
-                    self.vram_addr.set_reg(
-                        self.vram_addr.get_reg()
-                            + if self.control.increment_mode > 1 {
-                                32
-                            } else {
-                                1
-                            },
-                    );
+                    self.vram_addr.reg = self.vram_addr.reg
+                        + if self.control.get_increment_mode() > 1 {
+                            32
+                        } else {
+                            1
+                        };
 
                     // However, if the address was in the palette range, the
                     // data is not delayed, so it returns immediately
-                    if self.vram_addr.get_reg() >= 0x3F00 {
+                    if self.vram_addr.reg >= 0x3F00 {
                         self.ppu_data_buffer
                     } else {
                         data
@@ -105,13 +103,15 @@ impl Ppu2C02 {
         match addr {
             // Control
             0x0000 => {
-                self.control.set_reg(data);
-                self.tram_addr.nametable_x = self.control.nametable_x as u16;
-                self.tram_addr.nametable_y = self.control.nametable_y as u16;
+                self.control.reg = data;
+                self.tram_addr
+                    .set_nametable_x(self.control.get_nametable_x());
+                self.tram_addr
+                    .set_nametable_y(self.control.get_nametable_y());
             }
             // Mask
             0x0001 => {
-                self.mask.set_reg(data);
+                self.mask.reg = data;
             }
             // Status
             0x0002 => {}
@@ -129,13 +129,13 @@ impl Ppu2C02 {
                     // First write to scroll register contains X offset in pixel space
                     // which we split into coarse and fine x values
                     self.fine_x = data & 0x07;
-                    self.tram_addr.coarse_x = (data >> 3) as u16;
+                    self.tram_addr.set_coarse_x(data >> 3);
                     self.address_latch = 1;
                 } else {
                     // First write to scroll register contains Y offset in pixel space
                     // which we split into coarse and fine Y values
-                    self.tram_addr.fine_y = (data & 0x07) as u16;
-                    self.tram_addr.coarse_y = (data >> 3) as u16;
+                    self.tram_addr.set_fine_y(data & 0x07);
+                    self.tram_addr.set_coarse_y(data >> 3);
                     self.address_latch = 0;
                 }
             }
@@ -146,35 +146,34 @@ impl Ppu2C02 {
                     // registers. The fisrt write to this register latches the high byte
                     // of the address, the second is the low byte. Note the writes
                     // are stored in the tram register...
-                    self.tram_addr
-                        .set_reg(((data as u16 & 0x3F) << 8) | (self.tram_addr.get_reg() & 0x00FF));
+                    self.tram_addr.reg =
+                        ((data as u16 & 0x3F) << 8) | (self.tram_addr.reg & 0x00FF);
                     self.address_latch = 1;
                 } else {
                     // ...when a whole address has been written, the internal vram address
                     // buffer is updated. Writing to the PPU is unwise during rendering
                     // as the PPU will maintam the vram address automatically whilst
                     // rendering the scanline position.
-                    self.tram_addr
-                        .set_reg((self.tram_addr.get_reg() & 0xFF00) | data as u16);
+                    self.tram_addr.reg = (self.tram_addr.reg & 0xFF00) | data as u16;
                     self.vram_addr = self.tram_addr;
                     self.address_latch = 0;
                 }
             }
             // PPU Data
             0x0007 => {
-                self.ppu_write(self.vram_addr.get_reg(), data);
+                self.ppu_write(self.vram_addr.reg, data);
                 // All writes from PPU data automatically increment the nametable
                 // address depending upon the mode set in the control register.
                 // If set to vertical mode, the increment is 32, so it skips
                 // one whole nametable row; in horizontal mode it just increments
                 // by 1, moving to the next column
-                let increment = if self.control.increment_mode > 0 {
+                let increment = if self.control.get_increment_mode() > 0 {
                     32
                 } else {
                     1
                 };
 
-                self.vram_addr.set_reg(self.vram_addr.get_reg() + increment);
+                self.vram_addr.reg = self.vram_addr.reg + increment;
             }
             _ => {}
         }
@@ -253,7 +252,11 @@ impl Ppu2C02 {
             }
 
             return self.table_palette[address as usize]
-                & (if self.mask.grayscale > 0 { 0x30 } else { 0x3F });
+                & (if self.mask.get_grayscale() > 0 {
+                    0x30
+                } else {
+                    0x3F
+                });
         }
 
         0
