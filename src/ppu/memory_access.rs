@@ -72,7 +72,7 @@ impl Ppu2C02 {
                     let data = self.ppu_data_buffer;
 
                     // then update the buffer for next time
-                    self.ppu_data_buffer = self.ppu_read(self.vram_addr.reg, false);
+                    self.ppu_data_buffer = self.ppu_read(self.vram_addr.reg);
 
                     // All reads from PPU data automatically increment the nametable
                     // address depending upon the mode set in the control register.
@@ -179,7 +179,7 @@ impl Ppu2C02 {
         }
     }
 
-    pub fn ppu_read(&mut self, addr: u16, read_only: bool) -> u8 {
+    pub fn ppu_read(&mut self, addr: u16) -> u8 {
         let mut address = addr & 0x3FFF;
 
         if let Some(cartridge) = self.get_cartridge() {

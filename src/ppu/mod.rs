@@ -1,6 +1,7 @@
 mod memory_access;
-mod pixel;
+mod output;
 mod ppu2C02;
 mod registers;
+mod screen;
 
 pub use ppu2C02::*;

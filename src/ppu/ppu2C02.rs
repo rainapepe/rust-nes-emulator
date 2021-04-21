@@ -1,5 +1,5 @@
-use super::pixel::{Pixel, Sprite};
 use super::registers::{LoopyRegister, Mask, ObjectAttributeEntry, PpuControl, Status};
+use super::screen::Sprite;
 use crate::cartridge::Cartridge;
 
 pub struct Ppu2C02 {
@@ -12,10 +12,9 @@ pub struct Ppu2C02 {
     pub cartridge: Option<*mut Cartridge>,
 
     // auxiliares
-    pub pal_screen: [Pixel; 0x40], // pallete screen, são as 64 cores que o nes possui
-    pub spr_screen: Sprite,        // Tela final 256x240
-    pub spr_name_table: [Sprite; 2], // (não usado) visualização da nametables (tela final na memória) as duas são 256x240
-    pub spr_pattern_table: [Sprite; 2], // Visualização da tabela de sprites (background e foregrounds)
+    pub sprite_screen: Sprite,             // Tela final 256x240
+    pub sprite_name_table: [Sprite; 2], // (não usado) visualização da nametables (tela final na memória) as duas são 256x240
+    pub sprite_pattern_table: [Sprite; 2], // Visualização da tabela de sprites (background e foregrounds)
 
     pub frame_complete: bool,
     pub status: Status,
@@ -77,11 +76,9 @@ impl Ppu2C02 {
             table_pattern: [[0; 4096]; 2],
             table_palette: [0; 32],
             cartridge: None,
-
-            pal_screen: [Pixel {}; 0x40],
-            spr_screen: Sprite {},
-            spr_name_table: [Sprite {}; 2],
-            spr_pattern_table: [Sprite {}; 2],
+            sprite_screen: Sprite::new(256, 240),
+            sprite_name_table: [Sprite::new(256, 240); 2], // unused
+            sprite_pattern_table: [Sprite::new(128, 128); 2],
 
             frame_complete: false,
 
