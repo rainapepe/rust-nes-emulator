@@ -236,20 +236,22 @@ pub struct LoopyRegister {
 }
 
 impl LoopyRegister {
-    // coarse_x: 5,
+    /* coarse_x: 5 bits */
     pub fn get_coarse_x(&self) -> u8 {
         get_bits_u16(self.reg, 0, 5) as u8
     }
 
+    /* coarse_x: 5 bits */
     pub fn set_coarse_x(&mut self, data: u8) {
         self.reg = set_bits_u16(self.reg, 0, 5, data as u16);
     }
 
-    // coarse_y: 5,
+    /* coarse_y: 5 bits */
     pub fn get_coarse_y(&self) -> u8 {
         get_bits_u16(self.reg, 5, 5) as u8
     }
 
+    /* coarse_y: 5 bits */
     pub fn set_coarse_y(&mut self, data: u8) {
         self.reg = set_bits_u16(self.reg, 5, 5, data as u16);
     }

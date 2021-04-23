@@ -252,7 +252,7 @@ impl Ppu2C02 {
             }
 
             return self.table_palette[address as usize]
-                & (if self.mask.get_grayscale() > 0 {
+                & (if self.mask.get_grayscale() {
                     0x30
                 } else {
                     0x3F

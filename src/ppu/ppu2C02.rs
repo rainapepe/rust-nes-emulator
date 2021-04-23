@@ -33,6 +33,7 @@ pub struct Ppu2C02 {
     // Pixel "dot" position information
     pub scanline: i16,
     pub cycle: i16,
+    pub odd_frame: bool,
 
     // Background rendering =========================================
     pub bg_next_tile_id: u8,
@@ -93,6 +94,7 @@ impl Ppu2C02 {
             ppu_data_buffer: 0,
             scanline: 0,
             cycle: 0,
+            odd_frame: false,
 
             bg_next_tile_id: 0,
             bg_next_tile_attrib: 0,
