@@ -72,75 +72,75 @@ pub struct Mask {
 
 impl Mask {
     // grayscale: 1,
-    pub fn get_grayscale(&self) -> u8 {
-        get_bits_u8(self.reg, 0, 1)
+    pub fn get_grayscale(&self) -> bool {
+        get_bits_u8(self.reg, 0, 1) > 0
     }
 
-    pub fn set_grayscale(&mut self, data: u8) {
-        self.reg = set_bits_u8(self.reg, 0, 1, data);
+    pub fn set_grayscale(&mut self, data: bool) {
+        self.reg = set_bits_u8(self.reg, 0, 1, data as u8);
     }
 
     // render_background_left: 1,
-    pub fn get_render_background_left(&self) -> u8 {
-        get_bits_u8(self.reg, 1, 1)
+    pub fn get_render_background_left(&self) -> bool {
+        get_bits_u8(self.reg, 1, 1) > 0
     }
 
-    pub fn set_render_background_left(&mut self, data: u8) {
-        self.reg = set_bits_u8(self.reg, 1, 1, data);
+    pub fn set_render_background_left(&mut self, data: bool) {
+        self.reg = set_bits_u8(self.reg, 1, 1, data as u8);
     }
 
     // render_sprites_left: 1,
-    pub fn get_render_sprites_left(&self) -> u8 {
-        get_bits_u8(self.reg, 2, 1)
+    pub fn get_render_sprites_left(&self) -> bool {
+        get_bits_u8(self.reg, 2, 1) > 0
     }
 
-    pub fn set_render_sprites_left(&mut self, data: u8) {
-        self.reg = set_bits_u8(self.reg, 2, 1, data);
+    pub fn set_render_sprites_left(&mut self, data: bool) {
+        self.reg = set_bits_u8(self.reg, 2, 1, data as u8);
     }
 
     // render_background: 1,
-    pub fn get_render_background(&self) -> u8 {
-        get_bits_u8(self.reg, 3, 1)
+    pub fn get_render_background(&self) -> bool {
+        get_bits_u8(self.reg, 3, 1) > 0
     }
 
-    pub fn set_render_background(&mut self, data: u8) {
-        self.reg = set_bits_u8(self.reg, 3, 1, data);
+    pub fn set_render_background(&mut self, data: bool) {
+        self.reg = set_bits_u8(self.reg, 3, 1, data as u8);
     }
 
     // render_sprites: 1,
-    pub fn get_render_sprites(&self) -> u8 {
-        get_bits_u8(self.reg, 4, 1)
+    pub fn get_render_sprites(&self) -> bool {
+        get_bits_u8(self.reg, 4, 1) > 0
     }
 
-    pub fn set_render_sprites(&mut self, data: u8) {
-        self.reg = set_bits_u8(self.reg, 4, 1, data);
+    pub fn set_render_sprites(&mut self, data: bool) {
+        self.reg = set_bits_u8(self.reg, 4, 1, data as u8);
     }
 
     // enhance_red: 1,
-    pub fn get_enhance_red(&self) -> u8 {
-        get_bits_u8(self.reg, 5, 1)
+    pub fn get_enhance_red(&self) -> bool {
+        get_bits_u8(self.reg, 5, 1) > 0
     }
 
-    pub fn set_enhance_red(&mut self, data: u8) {
-        self.reg = set_bits_u8(self.reg, 5, 1, data);
+    pub fn set_enhance_red(&mut self, data: bool) {
+        self.reg = set_bits_u8(self.reg, 5, 1, data as u8);
     }
 
     // enhance_green: 1,
-    pub fn get_enhance_green(&self) -> u8 {
-        get_bits_u8(self.reg, 6, 1)
+    pub fn get_enhance_green(&self) -> bool {
+        get_bits_u8(self.reg, 6, 1) > 0
     }
 
-    pub fn set_enhance_green(&mut self, data: u8) {
-        self.reg = set_bits_u8(self.reg, 6, 1, data);
+    pub fn set_enhance_green(&mut self, data: bool) {
+        self.reg = set_bits_u8(self.reg, 6, 1, data as u8);
     }
 
     // enhance_blue: 1,
-    pub fn get_enhance_blue(&self) -> u8 {
-        get_bits_u8(self.reg, 7, 1)
+    pub fn get_enhance_blue(&self) -> bool {
+        get_bits_u8(self.reg, 7, 1) > 0
     }
 
-    pub fn set_enhance_blue(&mut self, data: u8) {
-        self.reg = set_bits_u8(self.reg, 7, 1, data);
+    pub fn set_enhance_blue(&mut self, data: bool) {
+        self.reg = set_bits_u8(self.reg, 7, 1, data as u8);
     }
 
     pub fn new() -> Mask {
@@ -272,11 +272,12 @@ impl LoopyRegister {
         self.reg = set_bits_u16(self.reg, 11, 1, data as u16);
     }
 
-    // fine_y: 3,
+    /* fine_y: 3 bits */
     pub fn get_fine_y(&self) -> u8 {
         get_bits_u16(self.reg, 12, 3) as u8
     }
 
+    /* fine_y: 3 bits */
     pub fn set_fine_y(&mut self, data: u8) {
         self.reg = set_bits_u16(self.reg, 12, 3, data as u16);
     }

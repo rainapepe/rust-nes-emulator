@@ -1,3 +1,4 @@
+mod clock;
 mod memory_access;
 mod output;
 mod ppu2C02;
