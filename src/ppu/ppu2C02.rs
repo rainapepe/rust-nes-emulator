@@ -1,6 +1,6 @@
 use super::registers::{LoopyRegister, Mask, ObjectAttributeEntry, PpuControl, Status};
-use super::screen::Sprite;
 use crate::cartridge::Cartridge;
+use crate::video::Frame;
 
 pub struct Ppu2C02 {
     // controla os tiles/sprites que serão exibidos na tela
@@ -12,9 +12,9 @@ pub struct Ppu2C02 {
     pub cartridge: Option<*mut Cartridge>,
 
     // auxiliares
-    pub sprite_screen: Sprite,             // Tela final 256x240
-    pub sprite_name_table: [Sprite; 2], // (não usado) visualização da nametables (tela final na memória) as duas são 256x240
-    pub sprite_pattern_table: [Sprite; 2], // Visualização da tabela de sprites (background e foregrounds)
+    pub sprite_screen: Frame,             // Tela final 256x240
+    pub sprite_name_table: [Frame; 2], // (não usado) visualização da nametables (tela final na memória) as duas são 256x240
+    pub sprite_pattern_table: [Frame; 2], // Visualização da tabela de sprites (background e foregrounds)
 
     pub frame_complete: bool,
     pub status: Status,
@@ -77,9 +77,9 @@ impl Ppu2C02 {
             table_pattern: [[0; 4096]; 2],
             table_palette: [0; 32],
             cartridge: None,
-            sprite_screen: Sprite::new(256, 240),
-            sprite_name_table: [Sprite::new(256, 240); 2], // unused
-            sprite_pattern_table: [Sprite::new(128, 128); 2],
+            sprite_screen: Frame::new(256, 240),
+            sprite_name_table: [Frame::new(256, 240), Frame::new(256, 240)], // unused
+            sprite_pattern_table: [Frame::new(256, 240), Frame::new(128, 128)],
 
             frame_complete: false,
 

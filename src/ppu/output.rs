@@ -1,5 +1,5 @@
-use super::screen::{get_color, Pixel, Sprite};
 use super::Ppu2C02;
+use crate::video::{get_color, Frame, Pixel};
 
 impl Ppu2C02 {
     /* Essa função retorna a cor de um pixel em uma paleta especifica de cores */
@@ -11,8 +11,8 @@ impl Ppu2C02 {
         get_color(color)
     }
 
-    pub fn get_screen(&self) -> Sprite {
-        self.sprite_screen
+    pub fn get_screen<'a>(&'a self) -> &'a Frame {
+        &self.sprite_screen
     }
 
     // This function draw the CHR ROM for a given pattern table into
@@ -48,7 +48,7 @@ impl Ppu2C02 {
     // 0 0 0 0 0 0 0 0	  0 0 0 0 0 0 0 0   0 0 0 0 0 0 0 0
     //
     // The planes are stored as 8 bytes of LSB, followed by 8 bytes of MSB
-    pub fn get_pattern_table(&mut self, i: i8, palette: u8) -> Sprite {
+    pub fn get_pattern_table<'a>(&'a mut self, i: i8, palette: u8) -> &'a Frame {
         // Loop through all 16x16 tiles
         for tile_y in 0..16 {
             for tile_x in 0..16 {
@@ -85,8 +85,8 @@ impl Ppu2C02 {
                         // Como sabemos que cada Tile é 8 pixel vamos multiplicar o tile_x e tile_y por 8
                         // Como estamos calculando da ultima coluna para primeira vamos inverter subtraindo o indece da coluna de 7
                         self.sprite_pattern_table[i as usize].set_pixel(
-                            (tile_x as u32) * 8 + (7 - col),
-                            (tile_y as u32) * 8 + row,
+                            (tile_x as usize) * 8 + (7 - col),
+                            (tile_y as usize) * 8 + row,
                             color,
                         )
                     }
@@ -94,6 +94,6 @@ impl Ppu2C02 {
             }
         }
 
-        self.sprite_pattern_table[i as usize]
+        &self.sprite_pattern_table[i as usize]
     }
 }
