@@ -79,7 +79,7 @@ impl Ppu2C02 {
             cartridge: None,
             sprite_screen: Frame::new(256, 240),
             sprite_name_table: [Frame::new(256, 240), Frame::new(256, 240)], // unused
-            sprite_pattern_table: [Frame::new(256, 240), Frame::new(128, 128)],
+            sprite_pattern_table: [Frame::new(128, 128), Frame::new(128, 128)],
 
             frame_complete: false,
 

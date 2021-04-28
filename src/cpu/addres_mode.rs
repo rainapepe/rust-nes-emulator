@@ -175,9 +175,9 @@ impl Cpu6502 {
         let ptr = self.read_next_16b();
 
         if (ptr & 0x00FF) == 0x00FF {
-            self.addr_abs = ((self.read(ptr & 0xFF00) << 8) | self.read(ptr)) as u16;
+            self.addr_abs = ((self.read(ptr & 0xFF00) as u16) << 8) | self.read(ptr) as u16;
         } else {
-            self.addr_abs = ((self.read(ptr + 1) << 8) | self.read(ptr)) as u16;
+            self.addr_abs = ((self.read(ptr + 1) as u16) << 8) | self.read(ptr) as u16;
         }
 
         0

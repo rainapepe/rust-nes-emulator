@@ -92,8 +92,11 @@ impl Bus {
     }
 
     pub fn read(&mut self, addres: u16, read_only: bool) -> u8 {
-        if let Some(cartridge) = &self.cartridge {
+        println!("bus->read({})", addres);
+        if let Some(cartridge) = &mut self.cartridge {
+            println!("bus->read({}) - cart check", addres);
             let (read, data) = cartridge.cpu_read(addres);
+            println!("bus->read({}) - cart true", addres);
 
             if read {
                 return data;
@@ -102,16 +105,19 @@ impl Bus {
 
         // Ram
         if addres <= 0x1FFF {
+            println!("bus->read({}) - ram", addres);
             return self.ram[addres as usize & 0x07FF];
         }
 
         if addres >= 0x2000 && addres <= 0x3FFF {
+            println!("bus->read({}) - ppu", addres);
             // PPU Address range, mirrored every 8
             return self.ppu.cpu_read(addres & 0x0007, read_only);
         }
 
         // Pads
         if addres >= 0x4016 && addres <= 0x4017 {
+            println!("bus->read({}) - pad", addres);
             return match addres {
                 0x4016 => self.pad1.get_reg(),
                 0x4017 => self.pad2.get_reg(),
@@ -151,6 +157,7 @@ impl Bus {
     }
 
     pub fn clock(&mut self) {
+        println!("bus: {}", self.system_clock_counter);
         // Clocking. The heart and soul of an emulator. The running
         // frequency is controlled by whatever calls this function.
         // So here we "divide" the clock as necessary and call

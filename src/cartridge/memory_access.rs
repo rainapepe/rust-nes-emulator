@@ -1,7 +1,9 @@
 use super::Cartridge;
 
 impl Cartridge {
-    pub fn cpu_read(&self, addr: u16) -> (bool, u8) {
+    pub fn cpu_read(&mut self, addr: u16) -> (bool, u8) {
+        println!("cart->read({})", addr);
+
         let (result, mapped_addr) = self.mapper.cpu_map_read(addr);
 
         if result {
@@ -22,7 +24,7 @@ impl Cartridge {
         return false;
     }
 
-    pub fn ppu_read(&self, addr: u16) -> (bool, u8) {
+    pub fn ppu_read(&mut self, addr: u16) -> (bool, u8) {
         let (result, mapped_addr) = self.mapper.ppu_map_read(addr);
 
         if result {

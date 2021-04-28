@@ -1,5 +1,5 @@
 use super::{Cartridge, Header, Mirror};
-use crate::mapper::create_mapper_000;
+use crate::mapper::Mapper;
 
 use std::fs::File;
 use std::io::{BufReader, Read, Seek, SeekFrom};
@@ -16,10 +16,13 @@ impl Cartridge {
             chr_banks: 0,
             prg_memory: vec![],
             chr_memory: vec![],
-            mapper: Box::new(create_mapper_000(0, 0)),
+            mapper: Mapper::create_mapper_000(0, 0),
         };
 
-        cart.load_file(file_name).unwrap();
+        cart.load_file(file_name).unwrap_or_else(|err| {
+            panic!("Failed to load file: {:?}", err);
+        });
+
         cart
     }
 }
@@ -47,7 +50,7 @@ impl Cartridge {
 
         // Ler o header do arquivo
         let header = read_struct::<Header, BufReader<File>>(&mut reader).unwrap();
-
+        println!("header: {:?}", header);
         // Se existe um "trainer" vamos reposicionar o stream para lê-lo
         if (header.mapper1 & 0x04) > 0 {
             reader.seek(SeekFrom::Current(512))?;
@@ -87,11 +90,16 @@ impl Cartridge {
         };
 
         match self.mapper_id {
-            0 => self.mapper = Box::new(create_mapper_000(self.prg_banks, self.chr_banks)),
+            0 => self.mapper = Mapper::create_mapper_000(self.prg_banks, self.chr_banks),
             _ => {}
         };
 
         self.image_valid = true;
+
+        println!("cartridge.prg_memory {:?}", self.prg_memory.len());
+        println!("cartridge.chr_memory {:?}", self.chr_memory.len());
+
+        println!("load mapper {}", self.mapper.get_type());
 
         Ok(())
     }

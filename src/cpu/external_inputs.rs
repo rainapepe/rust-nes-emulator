@@ -93,13 +93,14 @@ impl Cpu6502 {
         self.addr_abs = 0xFFFA;
         let lo = self.read(self.addr_abs + 0);
         let hi = self.read(self.addr_abs + 1);
-        self.pc = ((hi << 8) | lo) as u16;
+        self.pc = ((hi as u16) << 8) | lo as u16;
 
         self.cycles = 8;
     }
 
     /** Perform one clock cycles worth of emulation */
     pub fn clock(&mut self) {
+        println!("cycles: {}", self.cycles);
         // Each instruction requires a variable number of clock cycles to execute.
         // In my emulation, I only care about the final result and so I perform
         // the entire computation in one hit. In hardware, each clock cycle would
@@ -113,15 +114,24 @@ impl Cpu6502 {
         if self.cycles == 0 {
             // Ler o próximo byte de instrução, o valor desse Byte é para achar
             // qual é a operação e addresmode na tabela de tradução
+            println!("pc: {}", self.pc);
             self.opcode = self.read(self.pc);
 
+            println!("opcode: {}", self.opcode);
             // Sempre setar a flag unused para 1 (true)
             self.set_flag(Flags6502::U, true);
 
+            println!("pc_next");
             // Incrimentar o program counter
             self.pc_next();
 
+            println!("get_instruction");
             let instruction = self.get_instruction();
+
+            println!(
+                "instruction({:?},{:?}) - started",
+                instruction.opcode, instruction.addres_mode
+            );
 
             // numero inicial de ciclos
             self.cycles = instruction.cycles;
@@ -129,8 +139,15 @@ impl Cpu6502 {
             // aplicar o addres mode e guardar os ciclos adicionais
             let aditional_cycles1 = self.addres_mode(instruction.addres_mode);
 
+            println!("fetch: {}", self.fetched);
+
             // executar o opcode e guardar os ciclos adicionais
             let aditional_cycles2 = self.opcode(instruction.opcode);
+
+            println!(
+                "instruction({:?},{:?}) - finished",
+                instruction.opcode, instruction.addres_mode
+            );
 
             // adicionar ciclos
             self.cycles += aditional_cycles1 & aditional_cycles2;

@@ -18,10 +18,11 @@ pub struct Cartridge {
     pub prg_memory: Vec<u8>,
     pub chr_memory: Vec<u8>,
 
-    pub mapper: Box<dyn Mapper>,
+    pub mapper: Mapper,
 }
 
 // iNES Format Header
+#[derive(Debug)]
 pub struct Header {
     pub name: [u8; 4],
     pub prg_rom_chunks: u8,
