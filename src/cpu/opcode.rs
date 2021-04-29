@@ -351,6 +351,8 @@ impl Cpu6502 {
 
         self.pc = self.read_16b(0xFFFE);
 
+        println!("brk: {}", self.pc);
+
         0
     }
 

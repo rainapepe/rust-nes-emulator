@@ -1,10 +1,10 @@
 use super::{Cartridge, Header, Mirror};
 use crate::mapper::Mapper;
 
-use std::fs::File;
 use std::io::{BufReader, Read, Seek, SeekFrom};
 use std::mem::{forget, size_of, MaybeUninit};
 use std::slice;
+use std::{fs::File, usize};
 
 impl Cartridge {
     pub fn new(file_name: String) -> Cartridge {
@@ -43,13 +43,39 @@ pub fn read_struct<T, R: Read>(read: &mut R) -> std::io::Result<T> {
     }
 }
 
+pub fn print_buffer_hex(buffer: &Vec<u8>, size: usize) {
+    let len = size / 16;
+    for i in 0..len {
+        let offset = i * 16;
+        println!("[{:#06x}]: {:#04x} {:#04x} {:#04x} {:#04x} {:#04x} {:#04x} {:#04x} {:#04x} {:#04x} {:#04x} {:#04x} {:#04x} {:#04x} {:#04x} {:#04x} {:#04x}", 
+        offset, buffer[offset], buffer[offset + 1], buffer[offset + 2], buffer[offset + 3], buffer[offset + 4], buffer[offset + 5], buffer[offset + 6], buffer[offset + 7], buffer[offset + 8], buffer[offset + 9], buffer[offset + 10], buffer[offset + 11], buffer[offset + 12], buffer[offset + 13], buffer[offset + 14], buffer[offset + 15]);
+    }
+}
+
+pub fn read_vec(reader: &mut BufReader<File>, size: usize) -> std::io::Result<Vec<u8>> {
+    let mut data: Vec<u8> = vec![];
+    data.resize(size, 0);
+    let offsets = size / 16;
+    for y in 0..offsets {
+        let offset = y * 16;
+        let mut buffer: [u8; 16] = [0; 16];
+        reader.read(&mut buffer)?;
+
+        for i in 0..16 {
+            data[offset + i] = buffer[i];
+        }
+    }
+
+    Ok(data)
+}
+
 impl Cartridge {
     pub fn load_file(&mut self, file_name: String) -> std::io::Result<()> {
         let file = File::open(file_name).unwrap();
         let mut reader = BufReader::new(file);
 
         // Ler o header do arquivo
-        let header = read_struct::<Header, BufReader<File>>(&mut reader).unwrap();
+        let header = read_struct::<Header, BufReader<File>>(&mut reader)?;
         println!("header: {:?}", header);
         // Se existe um "trainer" vamos reposicionar o stream para lê-lo
         if (header.mapper1 & 0x04) > 0 {
@@ -69,22 +95,19 @@ impl Cartridge {
         match file_type {
             1 => {
                 self.prg_banks = header.prg_rom_chunks;
-                self.prg_memory
-                    .resize(((self.prg_banks as u32) * 16384) as usize, 0);
-                reader.read(&mut self.prg_memory)?;
-
+                // self.prg_memory.resize((self.prg_banks as usize) * 16384, 0);
+                self.prg_memory = read_vec(&mut reader, (self.prg_banks as usize) * 16384)?;
                 self.chr_banks = header.chr_rom_chunks;
 
-                if self.chr_banks == 0 {
+                let chr_memory_size: usize = if self.chr_banks == 0 {
                     // Criando o CHR RAM
-                    self.chr_memory.resize(8192 as usize, 0);
+                    8192
                 } else {
                     // Alocando para ROM
-                    self.chr_memory
-                        .resize(((self.chr_banks as u32) * 8192) as usize, 0);
-                }
-
-                reader.read(&mut self.chr_memory)?;
+                    (self.chr_banks as usize) * 8192
+                };
+                self.chr_memory.resize(chr_memory_size, 0);
+                // self.chr_memory = read_vec(&mut reader, chr_memory_size)?;
             }
             _ => {}
         };
@@ -96,11 +119,30 @@ impl Cartridge {
 
         self.image_valid = true;
 
-        println!("cartridge.prg_memory {:?}", self.prg_memory.len());
-        println!("cartridge.chr_memory {:?}", self.chr_memory.len());
+        println!("cartridge.prg_memory");
+        // print_buffer_hex(&test, 16384);
+        // print_buffer_hex(&self.prg_memory, self.prg_memory.len());
+        // print_buffer_hex(&self.chr_memory, self.chr_memory.len());
 
-        println!("load mapper {}", self.mapper.get_type());
+        // println!("load mapper {}", self.mapper.get_type());
 
         Ok(())
+    }
+
+    pub fn cpu_read(&mut self, addr: u16) -> (bool, u8) {
+        println!("cart->read({:#06x})", addr);
+
+        let (result, mapped_addr) = self.mapper.cpu_map_read(addr);
+
+        if result {
+            println!(
+                "cart->read({:#06x}) - prg_memory: {:?}",
+                mapped_addr,
+                self.prg_memory.len()
+            );
+            return (true, self.prg_memory[mapped_addr as usize]);
+        };
+
+        return (false, 0);
     }
 }

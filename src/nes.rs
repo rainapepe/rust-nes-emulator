@@ -31,11 +31,13 @@ impl Video for Nes {
         ppu.sprite_screen.render(0, 0, 2.7, context, gl);
 
         // Draw pattern
-        // ppu.get_pattern_table(0, 0).render(600, 200, context, gl);
-        // ppu.get_pattern_table(1, 0).render(600, 448, context, gl);
+        ppu.get_pattern_table(0, 0)
+            .render(720, 420, 1.8, context, gl);
+        ppu.get_pattern_table(1, 0)
+            .render(960, 420, 1.8, context, gl);
 
-        ppu.sprite_pattern_table[0].render(720, 420, 1.8, context, gl);
-        ppu.sprite_pattern_table[1].render(960, 420, 1.8, context, gl);
+        // ppu.sprite_pattern_table[0].render(720, 420, 1.8, context, gl);
+        // ppu.sprite_pattern_table[1].render(960, 420, 1.8, context, gl);
     }
 
     fn on_buttom_press(&mut self, key: Key) {
@@ -68,7 +70,7 @@ impl Video for Nes {
             Key::Left => pad1.release_button(PadButton::Left),
             Key::Space => pad1.release_button(PadButton::Start),
             Key::C => pad1.release_button(PadButton::Select),
-            Key::P => self.running = !self.running,
+            // Key::P => self.running = !self.running,
             _ => {}
         }
     }

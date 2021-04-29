@@ -92,32 +92,33 @@ impl Bus {
     }
 
     pub fn read(&mut self, addres: u16, read_only: bool) -> u8 {
-        println!("bus->read({})", addres);
+        println!("bus->read({:#06x})", addres);
         if let Some(cartridge) = &mut self.cartridge {
-            println!("bus->read({}) - cart check", addres);
             let (read, data) = cartridge.cpu_read(addres);
-            println!("bus->read({}) - cart true", addres);
+            // println!("bus->read({:#06x}) - cart is true: {}", addres, read);
 
             if read {
                 return data;
             }
+        } else {
+            panic!("no cartridge!");
         }
 
         // Ram
         if addres <= 0x1FFF {
-            println!("bus->read({}) - ram", addres);
+            // println!("bus->read({:#06x}) - ram", addres);
             return self.ram[addres as usize & 0x07FF];
         }
 
         if addres >= 0x2000 && addres <= 0x3FFF {
-            println!("bus->read({}) - ppu", addres);
+            // println!("bus->read({:#06x}) - ppu", addres);
             // PPU Address range, mirrored every 8
             return self.ppu.cpu_read(addres & 0x0007, read_only);
         }
 
         // Pads
         if addres >= 0x4016 && addres <= 0x4017 {
-            println!("bus->read({}) - pad", addres);
+            // println!("bus->read({:#06x}) - pad", addres);
             return match addres {
                 0x4016 => self.pad1.get_reg(),
                 0x4017 => self.pad2.get_reg(),
@@ -133,7 +134,10 @@ impl Bus {
             if cartridge.cpu_write(addres, data) {
                 return;
             }
+        } else {
+            panic!("no cartridge!");
         }
+
         if addres <= 0x1FFF {
             self.ram[addres as usize & 0x07FF] = data;
             return;
@@ -150,9 +154,13 @@ impl Bus {
     }
 
     pub fn insert_cartridge(&mut self, cartridge: Cartridge) {
+        println!("cart created: {}", cartridge.prg_memory[0x3fff]);
         self.cartridge = Some(cartridge);
         if let Some(cart) = &mut self.cartridge {
             self.ppu.connect_cartridge(cart);
+        }
+        if let Some(cart) = &mut self.cartridge {
+            println!("cart in bus: {}", cart.prg_memory[0x3fff]);
         }
     }
 

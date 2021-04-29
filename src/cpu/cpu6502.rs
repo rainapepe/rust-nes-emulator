@@ -82,7 +82,7 @@ impl Cpu6502 {
     pub fn read(&self, addres: u16) -> u8 {
         unsafe {
             if let Some(bus) = self.bus.as_mut() {
-                println!("cpu->read({})", addres);
+                // println!("cpu->read({:#06x})", addres);
                 return bus.read(addres, false);
             }
         }
@@ -148,11 +148,19 @@ impl Cpu6502 {
 
     pub fn stkp_push(&mut self, value: u8) {
         self.write(0x0100 + self.stkp as u16, value);
-        self.stkp += 1;
+        if self.stkp == 0 {
+            self.stkp = 255;
+        } else {
+            self.stkp -= 1;
+        }
     }
 
     pub fn stkp_pop(&mut self) -> u8 {
-        self.stkp -= 1;
+        if self.stkp == 255 {
+            self.stkp = 0;
+        } else {
+            self.stkp += 1;
+        }
         self.read(0x0100 + self.stkp as u16)
     }
 
@@ -170,6 +178,8 @@ impl Cpu6502 {
     pub fn read_16b(&mut self, addres: u16) -> u16 {
         let lo = self.read(addres) as u16;
         let hi = self.read(addres + 1) as u16;
+
+        // println!("hi: {:#06x} lo: {:#06x}", hi, lo);
 
         (hi << 8) | lo
     }

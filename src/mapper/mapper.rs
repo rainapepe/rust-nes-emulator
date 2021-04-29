@@ -20,19 +20,19 @@ impl Mapper {
 
     pub fn cpu_map_write(&mut self, addr: u16, data: u8) -> (bool, u32) {
         match self.mapper_type {
-            MapperType::Mapper000 => mappers::cpu_map_read(self, addr),
+            MapperType::Mapper000 => mappers::cpu_map_write(self, addr, data),
         }
     }
 
     // Transform PPU bus address into CHR ROM offset
     pub fn ppu_map_read(&mut self, addr: u16) -> (bool, u32) {
         match self.mapper_type {
-            MapperType::Mapper000 => mappers::cpu_map_read(self, addr),
+            MapperType::Mapper000 => mappers::ppu_map_read(self, addr),
         }
     }
     pub fn ppu_map_write(&mut self, addr: u16) -> (bool, u32) {
         match self.mapper_type {
-            MapperType::Mapper000 => mappers::cpu_map_read(self, addr),
+            MapperType::Mapper000 => mappers::ppu_map_write(self, addr),
         }
     }
 

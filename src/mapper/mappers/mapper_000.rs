@@ -8,7 +8,7 @@ pub fn cpu_map_read(mapper: &mut Mapper, addr: u16) -> (bool, u32) {
     // if PRGROM is 32KB
     //     CPU Address Bus          PRG ROM
     //     0x8000 -> 0xFFFF: Map    0x0000 -> 0x7FFF
-    println!("mapper->read({})", addr);
+    // println!("mapper->read({:#06x})", addr);
 
     if addr >= 0x8000 && addr <= 0xFFFF {
         return (

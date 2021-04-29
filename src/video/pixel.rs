@@ -19,7 +19,12 @@ impl Pixel {
     }
 
     pub fn get_color(&self) -> [f32; 4] {
-        [self.0 as f32, self.1 as f32, self.2 as f32, 1.0]
+        [
+            (self.0 / 255) as f32,
+            (self.1 / 255) as f32,
+            (self.2 / 255) as f32,
+            1.0,
+        ]
     }
 }
 

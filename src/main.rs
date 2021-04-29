@@ -18,5 +18,9 @@ fn main() {
     nes.bus.ppu.sprite_pattern_table[0].set_border(Pixel::new(255, 0, 0));
     nes.bus.ppu.sprite_pattern_table[1].set_border(Pixel::new(255, 0, 0));
 
+    if let Some(cart) = &mut nes.bus.cartridge {
+        println!("cart in main: {}", cart.prg_memory[0x3fff]);
+    }
+
     nes.start();
 }

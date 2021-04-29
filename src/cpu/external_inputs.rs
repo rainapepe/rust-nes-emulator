@@ -100,7 +100,7 @@ impl Cpu6502 {
 
     /** Perform one clock cycles worth of emulation */
     pub fn clock(&mut self) {
-        println!("cycles: {}", self.cycles);
+        // println!("cycles: {}", self.cycles);
         // Each instruction requires a variable number of clock cycles to execute.
         // In my emulation, I only care about the final result and so I perform
         // the entire computation in one hit. In hardware, each clock cycle would
@@ -115,17 +115,26 @@ impl Cpu6502 {
             // Ler o próximo byte de instrução, o valor desse Byte é para achar
             // qual é a operação e addresmode na tabela de tradução
             println!("pc: {}", self.pc);
+
+            unsafe {
+                if let Some(bus) = self.bus.as_mut() {
+                    if let Some(cart) = &mut bus.cartridge {
+                        println!("cart in cpu clock: {}", cart.prg_memory[0x3fff]);
+                    }
+                }
+            }
+
             self.opcode = self.read(self.pc);
 
-            println!("opcode: {}", self.opcode);
+            // println!("opcode: {}", self.opcode);
             // Sempre setar a flag unused para 1 (true)
             self.set_flag(Flags6502::U, true);
 
-            println!("pc_next");
+            // println!("pc_next");
             // Incrimentar o program counter
             self.pc_next();
 
-            println!("get_instruction");
+            // println!("get_instruction");
             let instruction = self.get_instruction();
 
             println!(
