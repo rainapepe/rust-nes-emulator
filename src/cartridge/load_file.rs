@@ -106,8 +106,8 @@ impl Cartridge {
                     // Alocando para ROM
                     (self.chr_banks as usize) * 8192
                 };
-                self.chr_memory.resize(chr_memory_size, 0);
-                // self.chr_memory = read_vec(&mut reader, chr_memory_size)?;
+                // self.chr_memory.resize(chr_memory_size, 0);
+                self.chr_memory = read_vec(&mut reader, chr_memory_size)?;
             }
             _ => {}
         };
@@ -122,27 +122,10 @@ impl Cartridge {
         println!("cartridge.prg_memory");
         // print_buffer_hex(&test, 16384);
         // print_buffer_hex(&self.prg_memory, self.prg_memory.len());
-        // print_buffer_hex(&self.chr_memory, self.chr_memory.len());
+        print_buffer_hex(&self.chr_memory, self.chr_memory.len());
 
         // println!("load mapper {}", self.mapper.get_type());
 
         Ok(())
-    }
-
-    pub fn cpu_read(&mut self, addr: u16) -> (bool, u8) {
-        println!("cart->read({:#06x})", addr);
-
-        let (result, mapped_addr) = self.mapper.cpu_map_read(addr);
-
-        if result {
-            println!(
-                "cart->read({:#06x}) - prg_memory: {:?}",
-                mapped_addr,
-                self.prg_memory.len()
-            );
-            return (true, self.prg_memory[mapped_addr as usize]);
-        };
-
-        return (false, 0);
     }
 }

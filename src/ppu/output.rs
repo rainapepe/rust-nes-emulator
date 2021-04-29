@@ -4,11 +4,17 @@ use crate::video::{get_color, Frame, Pixel};
 impl Ppu2C02 {
     /* Essa função retorna a cor de um pixel em uma paleta especifica de cores */
     pub fn get_colour_from_palette_ram(&mut self, palette: u8, pixel: u8) -> Pixel {
+        match pixel {
+            1 => Pixel::new(255, 0, 0),
+            2 => Pixel::new(0, 255, 0),
+            3 => Pixel::new(0, 0, 255),
+            _ => Pixel::new(0, 0, 0),
+        }
         // "0x3F00"       - Offset do endereço na PPU que contém o range das paletas
         // "palette << 2" - Cada paleta tem 4 bytes de tamanho
         // "pixel"        - Cada pixel tem o index entre 0, 1, 2 or 3
-        let color = self.ppu_read(0x3F00 + ((palette as u16) << 2) + pixel as u16);
-        get_color(color)
+        // let color = self.ppu_read(0x3F00 + ((palette as u16) << 2) + pixel as u16);
+        // get_color(color)
     }
 
     pub fn get_screen<'a>(&'a self) -> &'a Frame {

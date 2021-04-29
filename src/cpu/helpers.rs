@@ -46,7 +46,7 @@ impl Cpu6502 {
     // It is merely a convenience function to turn the binary instruction code into
     // human readable form. Its included as part of the emulator because it can take
     // advantage of many of the CPUs internal operations to do this.
-    pub fn disassemble(&self, start: u16, stop: u16) -> HashMap<u16, String> {
+    pub fn disassemble(&mut self, start: u16, stop: u16) -> HashMap<u16, String> {
         let mut addr: u32 = start as u32;
         let mut value: u8 = 0;
         let mut lo: u8 = 0;

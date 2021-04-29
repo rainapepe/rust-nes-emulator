@@ -50,11 +50,11 @@ pub struct Cpu6502 {
     pub cycles: u8,
     /** A global accumulation of the number of clocks */
     pub clock_count: u32,
-    pub bus: *mut Bus,
+    pub bus: Bus,
 }
 
 impl Cpu6502 {
-    pub fn new(bus: &mut Bus) -> Cpu6502 {
+    pub fn new_with_bus(bus: Bus) -> Cpu6502 {
         Cpu6502 {
             // registradores
             a: 0,
@@ -79,33 +79,16 @@ impl Cpu6502 {
 
 // Conectividade com a Bus
 impl Cpu6502 {
-    pub fn read(&self, addres: u16) -> u8 {
-        unsafe {
-            if let Some(bus) = self.bus.as_mut() {
-                // println!("cpu->read({:#06x})", addres);
-                return bus.read(addres, false);
-            }
-        }
-
-        0
+    pub fn read(&mut self, addres: u16) -> u8 {
+        return self.bus.read(addres, false);
     }
 
-    pub fn write(&self, addres: u16, data: u8) {
-        unsafe {
-            if let Some(bus) = self.bus.as_mut() {
-                bus.write(addres, data);
-            }
-        }
+    pub fn write(&mut self, addres: u16, data: u8) {
+        self.bus.write(addres, data);
     }
 
-    pub fn bus_read(&self, addres: u16, read_only: bool) -> u8 {
-        unsafe {
-            if let Some(bus) = self.bus.as_mut() {
-                return bus.read(addres, read_only);
-            }
-        }
-
-        0
+    pub fn bus_read(&mut self, addres: u16, read_only: bool) -> u8 {
+        return self.bus.read(addres, read_only);
     }
 }
 

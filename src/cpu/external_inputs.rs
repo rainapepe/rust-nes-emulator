@@ -99,7 +99,7 @@ impl Cpu6502 {
     }
 
     /** Perform one clock cycles worth of emulation */
-    pub fn clock(&mut self) {
+    pub fn cpu_clock(&mut self) {
         // println!("cycles: {}", self.cycles);
         // Each instruction requires a variable number of clock cycles to execute.
         // In my emulation, I only care about the final result and so I perform
@@ -114,15 +114,15 @@ impl Cpu6502 {
         if self.cycles == 0 {
             // Ler o próximo byte de instrução, o valor desse Byte é para achar
             // qual é a operação e addresmode na tabela de tradução
-            println!("pc: {}", self.pc);
+            // println!("pc: {}", self.pc);
 
-            unsafe {
-                if let Some(bus) = self.bus.as_mut() {
-                    if let Some(cart) = &mut bus.cartridge {
-                        println!("cart in cpu clock: {}", cart.prg_memory[0x3fff]);
-                    }
-                }
-            }
+            // unsafe {
+            //     if let Some(bus) = self.bus.as_mut() {
+            //         if let Some(cart) = &mut bus.cartridge {
+            //             println!("cart in cpu clock: {}", cart.prg_memory[0x3fff]);
+            //         }
+            //     }
+            // }
 
             self.opcode = self.read(self.pc);
 
@@ -137,10 +137,10 @@ impl Cpu6502 {
             // println!("get_instruction");
             let instruction = self.get_instruction();
 
-            println!(
-                "instruction({:?},{:?}) - started",
-                instruction.opcode, instruction.addres_mode
-            );
+            // println!(
+            //     "instruction({:?},{:?}) - started",
+            //     instruction.opcode, instruction.addres_mode
+            // );
 
             // numero inicial de ciclos
             self.cycles = instruction.cycles;
@@ -148,15 +148,15 @@ impl Cpu6502 {
             // aplicar o addres mode e guardar os ciclos adicionais
             let aditional_cycles1 = self.addres_mode(instruction.addres_mode);
 
-            println!("fetch: {}", self.fetched);
+            // println!("fetch: {}", self.fetched);
 
             // executar o opcode e guardar os ciclos adicionais
             let aditional_cycles2 = self.opcode(instruction.opcode);
 
-            println!(
-                "instruction({:?},{:?}) - finished",
-                instruction.opcode, instruction.addres_mode
-            );
+            // println!(
+            //     "instruction({:?},{:?}) - finished",
+            //     instruction.opcode, instruction.addres_mode
+            // );
 
             // adicionar ciclos
             self.cycles += aditional_cycles1 & aditional_cycles2;
@@ -169,5 +169,75 @@ impl Cpu6502 {
 
         // decrementando o numero de ciclos
         self.cycles -= 1;
+    }
+
+    pub fn clock(&mut self) {
+        // println!("bus: {}", self.version);
+        // Clocking. The heart and soul of an emulator. The running
+        // frequency is controlled by whatever calls this function.
+        // So here we "divide" the clock as necessary and call
+        // the peripheral devices clock() function at the correct
+        // times.
+
+        // The fastest clock frequency the digital system cares
+        // about is equivalent to the PPU clock. So the PPU is clocked
+        // each time this function is called...
+        self.bus.ppu.clock();
+
+        // The CPU runs 3 times slower than the PPU so we only call its
+        // clock() function every 3 times this function is called. We
+        // have a global counter to keep track of this.
+        if self.bus.system_clock_counter % 3 == 0 {
+            // Is the system performing a DMA transfer form CPU memory to
+            // OAM memory on PPU?...
+            if self.bus.dma_transfer {
+                // ...Yes! We need to wait until the next even CPU clock cycle
+                // before it starts...
+                if self.bus.dma_dummy {
+                    // ...So hang around in here each clock until 1 or 2 cycles
+                    // have elapsed...
+                    if self.bus.system_clock_counter % 2 == 1 {
+                        // ...and finally allow DMA to start
+                        self.bus.dma_dummy = false;
+                    }
+                } else {
+                    // DMA can take place!
+                    if self.bus.system_clock_counter % 2 == 0 {
+                        // On even clock cycles, read from CPU bus
+                        self.bus.dma_data = self.bus.read(
+                            (self.bus.dma_page as u16) << 8 | self.bus.dma_addr as u16,
+                            false,
+                        );
+                    } else {
+                        // On odd clock cycles, write to PPU OAM
+                        self.bus.ppu.oam_write(self.bus.dma_addr, self.bus.dma_data);
+                        // Increment the lo byte of the address
+                        self.bus.dma_addr += 1;
+                        // If this wraps around, we know that 256
+                        // bytes have been written, so end the DMA
+                        // transfer, and proceed as normal
+                        if self.bus.dma_addr == 0x00 {
+                            self.bus.dma_transfer = false;
+                            self.bus.dma_dummy = true;
+                        }
+                    }
+                }
+            } else {
+                // No DMA happening, the CPU is in control of its
+                // own destiny. Go forth my friend and calculate
+                // awesomeness for many generations to come...
+                self.cpu_clock();
+            }
+        }
+
+        // The PPU is capable of emitting an interrupt to indicate the
+        // vertical blanking period has been entered. If it has, we need
+        // to send that irq to the CPU.
+        if self.bus.ppu.nmi {
+            self.bus.ppu.nmi = false;
+            self.nmi();
+        }
+
+        self.bus.system_clock_counter += 1;
     }
 }

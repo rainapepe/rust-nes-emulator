@@ -1,10 +1,27 @@
 use crate::mapper::Mapper;
 
+#[derive(Clone, Copy)]
 pub enum Mirror {
     Horizontal,
     Vertical,
     OneScreenLo,
     OneScreenHi,
+}
+
+pub struct PrgRom {
+    pub mirror: Mirror,
+    pub mapper_id: u8,
+    pub prg_memory: Vec<u8>,
+    pub prg_banks: u8,
+    pub mapper: Mapper,
+}
+
+pub struct ChrRom {
+    pub mirror: Mirror,
+    pub mapper_id: u8,
+    pub chr_banks: u8,
+    pub chr_memory: Vec<u8>,
+    pub mapper: Mapper,
 }
 
 pub struct Cartridge {

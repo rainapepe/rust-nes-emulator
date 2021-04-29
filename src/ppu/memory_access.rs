@@ -182,11 +182,9 @@ impl Ppu2C02 {
     pub fn ppu_read(&mut self, addr: u16) -> u8 {
         let mut address = addr & 0x3FFF;
 
-        if let Some(cartridge) = self.get_cartridge() {
-            let (read_cartridge, data) = cartridge.ppu_read(address);
-            if read_cartridge {
-                return data;
-            }
+        let (should_read, data) = self.chr_rom.read(address);
+        if should_read {
+            return data;
         }
 
         if address <= 0x1FFF {
@@ -199,37 +197,35 @@ impl Ppu2C02 {
         if address >= 0x2000 && address <= 0x3EFF {
             address &= 0x0FFF;
 
-            if let Some(cartridge) = self.get_cartridge() {
-                if let Mirror::Vertical = cartridge.mirror {
-                    // Vertical
-                    if address <= 0x03FF {
-                        return self.table_name[0][(address & 0x03FF) as usize];
-                    }
-                    if address >= 0x0400 && address <= 0x07FF {
-                        return self.table_name[1][(address & 0x03FF) as usize];
-                    }
-                    if address >= 0x0800 && address <= 0x0BFF {
-                        return self.table_name[0][(address & 0x03FF) as usize];
-                    }
-                    if address >= 0x0C00 && address <= 0x0FFF {
-                        return self.table_name[1][(address & 0x03FF) as usize];
-                    }
+            if let Mirror::Vertical = self.chr_rom.mirror {
+                // Vertical
+                if address <= 0x03FF {
+                    return self.table_name[0][(address & 0x03FF) as usize];
                 }
+                if address >= 0x0400 && address <= 0x07FF {
+                    return self.table_name[1][(address & 0x03FF) as usize];
+                }
+                if address >= 0x0800 && address <= 0x0BFF {
+                    return self.table_name[0][(address & 0x03FF) as usize];
+                }
+                if address >= 0x0C00 && address <= 0x0FFF {
+                    return self.table_name[1][(address & 0x03FF) as usize];
+                }
+            }
 
-                if let Mirror::Horizontal = cartridge.mirror {
-                    // Horizontal
-                    if address <= 0x03FF {
-                        return self.table_name[0][(address & 0x03FF) as usize];
-                    }
-                    if address >= 0x0400 && address <= 0x07FF {
-                        return self.table_name[0][(address & 0x03FF) as usize];
-                    }
-                    if address >= 0x0800 && address <= 0x0BFF {
-                        return self.table_name[1][(address & 0x03FF) as usize];
-                    }
-                    if address >= 0x0C00 && address <= 0x0FFF {
-                        return self.table_name[1][(address & 0x03FF) as usize];
-                    }
+            if let Mirror::Horizontal = self.chr_rom.mirror {
+                // Horizontal
+                if address <= 0x03FF {
+                    return self.table_name[0][(address & 0x03FF) as usize];
+                }
+                if address >= 0x0400 && address <= 0x07FF {
+                    return self.table_name[0][(address & 0x03FF) as usize];
+                }
+                if address >= 0x0800 && address <= 0x0BFF {
+                    return self.table_name[1][(address & 0x03FF) as usize];
+                }
+                if address >= 0x0C00 && address <= 0x0FFF {
+                    return self.table_name[1][(address & 0x03FF) as usize];
                 }
             }
 
@@ -265,10 +261,8 @@ impl Ppu2C02 {
     pub fn ppu_write(&mut self, addr: u16, data: u8) {
         let mut address = addr & 0x3FFF;
 
-        if let Some(cartridge) = self.get_cartridge() {
-            if cartridge.ppu_write(address, data) {
-                return;
-            }
+        if self.chr_rom.write(address, data) {
+            return;
         }
 
         if address <= 0x1FFF {
@@ -280,38 +274,36 @@ impl Ppu2C02 {
         if address >= 0x2000 && address <= 0x3EFF {
             address &= 0x0FFF;
 
-            if let Some(cartridge) = self.get_cartridge() {
-                if let Mirror::Vertical = cartridge.mirror {
-                    // Vertical
-                    if address <= 0x03FF {
-                        self.table_name[0][(address & 0x03FF) as usize];
-                    }
-                    if address >= 0x0400 && address <= 0x07FF {
-                        self.table_name[1][(address & 0x03FF) as usize] = data;
-                    }
-                    if address >= 0x0800 && address <= 0x0BFF {
-                        self.table_name[0][(address & 0x03FF) as usize] = data;
-                    }
-                    if address >= 0x0C00 && address <= 0x0FFF {
-                        self.table_name[1][(address & 0x03FF) as usize] = data;
-                    }
-                    return;
+            if let Mirror::Vertical = self.chr_rom.mirror {
+                // Vertical
+                if address <= 0x03FF {
+                    self.table_name[0][(address & 0x03FF) as usize];
                 }
+                if address >= 0x0400 && address <= 0x07FF {
+                    self.table_name[1][(address & 0x03FF) as usize] = data;
+                }
+                if address >= 0x0800 && address <= 0x0BFF {
+                    self.table_name[0][(address & 0x03FF) as usize] = data;
+                }
+                if address >= 0x0C00 && address <= 0x0FFF {
+                    self.table_name[1][(address & 0x03FF) as usize] = data;
+                }
+                return;
+            }
 
-                if let Mirror::Horizontal = cartridge.mirror {
-                    // Horizontal
-                    if address <= 0x03FF {
-                        self.table_name[0][(address & 0x03FF) as usize] = data;
-                    }
-                    if address >= 0x0400 && address <= 0x07FF {
-                        self.table_name[0][(address & 0x03FF) as usize] = data;
-                    }
-                    if address >= 0x0800 && address <= 0x0BFF {
-                        self.table_name[1][(address & 0x03FF) as usize] = data;
-                    }
-                    if address >= 0x0C00 && address <= 0x0FFF {
-                        self.table_name[1][(address & 0x03FF) as usize] = data;
-                    }
+            if let Mirror::Horizontal = self.chr_rom.mirror {
+                // Horizontal
+                if address <= 0x03FF {
+                    self.table_name[0][(address & 0x03FF) as usize] = data;
+                }
+                if address >= 0x0400 && address <= 0x07FF {
+                    self.table_name[0][(address & 0x03FF) as usize] = data;
+                }
+                if address >= 0x0800 && address <= 0x0BFF {
+                    self.table_name[1][(address & 0x03FF) as usize] = data;
+                }
+                if address >= 0x0C00 && address <= 0x0FFF {
+                    self.table_name[1][(address & 0x03FF) as usize] = data;
                 }
             }
         }

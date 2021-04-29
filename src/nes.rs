@@ -2,12 +2,13 @@ use graphics::{clear, text, text::Text, Context};
 use opengl_graphics::GlGraphics;
 use piston::Key;
 
-use crate::bus::Bus;
 use crate::cartridge::Cartridge;
 use crate::pad::PadButton;
 use crate::video::{Pixel, Video, BLACK_PIXEL};
+use crate::{bus::Bus, cpu::Cpu6502};
 pub struct Nes {
-    pub bus: Bus,
+    pub cpu: Cpu6502,
+    palette_table: u8,
     cartridge: String,
     running: bool,
 }
@@ -17,23 +18,43 @@ impl Video for Nes {
         clear(BLACK_PIXEL.get_color(), gl);
         if self.running {
             loop {
-                self.bus.clock();
-                if self.bus.ppu.frame_complete {
+                self.cpu.clock();
+                if self.cpu.bus.ppu.frame_complete {
                     break;
                 }
             }
 
-            self.bus.ppu.frame_complete = false;
+            self.cpu.bus.ppu.frame_complete = false;
         }
 
-        let ppu = &mut self.bus.ppu;
+        let ppu = &mut self.cpu.bus.ppu;
         // Draw screen
         ppu.sprite_screen.render(0, 0, 2.7, context, gl);
 
+        // Draw Palettes & Pattern Tables ==============================================
+        let swatch_size = 8;
+        for p in 0..8 {
+            for s in 0..4 {
+                let x: u64 = 720 + p * (swatch_size * 5) + s * swatch_size;
+                let y: u64 = 380;
+
+                let pixel = graphics::rectangle::square(x as f64, y as f64, swatch_size as f64);
+
+                let color = ppu.get_colour_from_palette_ram(p as u8, s as u8);
+                graphics::rectangle(color.get_color(), pixel, context.transform, gl);
+            }
+        }
+
+        // const int nSwatchSize = 6;
+        // for (int p = 0; p < 8; p++) // For each palette
+        // 	for (int s = 0; s < 4; s++) // For each index
+        // 		FillRect(516 + p * (nSwatchSize * 5) + s * nSwatchSize, 340,
+        // 			nSwatchSize, nSwatchSize, nes.ppu.GetColourFromPaletteRam(p, s));
+
         // Draw pattern
-        ppu.get_pattern_table(0, 0)
+        ppu.get_pattern_table(0, self.palette_table)
             .render(720, 420, 1.8, context, gl);
-        ppu.get_pattern_table(1, 0)
+        ppu.get_pattern_table(1, self.palette_table)
             .render(960, 420, 1.8, context, gl);
 
         // ppu.sprite_pattern_table[0].render(720, 420, 1.8, context, gl);
@@ -41,7 +62,7 @@ impl Video for Nes {
     }
 
     fn on_buttom_press(&mut self, key: Key) {
-        let pad1 = &mut self.bus.pad1;
+        let pad1 = &mut self.cpu.bus.pad1;
         match key {
             Key::Z => pad1.press_button(PadButton::B),
             Key::X => pad1.press_button(PadButton::A),
@@ -52,14 +73,21 @@ impl Video for Nes {
             Key::Space => pad1.press_button(PadButton::Start),
             Key::C => pad1.press_button(PadButton::Select),
             Key::P => self.running = !self.running,
-            Key::N => self.bus.clock(),
+            Key::N => self.cpu.clock(),
+            Key::T => {
+                if self.palette_table == 7 {
+                    self.palette_table = 0;
+                } else {
+                    self.palette_table += 1;
+                }
+            }
 
             _ => {}
         }
     }
 
     fn on_buttom_release(&mut self, key: Key) {
-        let pad1 = &mut self.bus.pad1;
+        let pad1 = &mut self.cpu.bus.pad1;
 
         match key {
             Key::Z => pad1.release_button(PadButton::B),
@@ -77,23 +105,20 @@ impl Video for Nes {
 }
 
 impl Nes {
-    pub fn new() -> Nes {
-        Nes {
-            bus: Bus::new(),
-            cartridge: String::new(),
-            running: false,
-        }
-    }
-
-    pub fn insert_cartridge(&mut self, file_name: &str) {
-        self.cartridge = file_name.to_string();
+    pub fn new_with_cartridge(file_name: &str) -> Nes {
         let cartridge = Cartridge::new(file_name.to_string());
-        self.bus.insert_cartridge(cartridge);
+        let bus = Bus::new(cartridge);
+        Nes {
+            cpu: Cpu6502::new_with_bus(bus),
+            cartridge: file_name.to_string(),
+            running: false,
+            palette_table: 0,
+        }
     }
 
     pub fn start(&mut self) {
         if self.cartridge.is_empty() {
-            panic!("No cartridge selected!");
+            panic!("[nes] No cartridge selected!");
         }
 
         let cartridge = self.cartridge.to_string();

@@ -1,5 +1,5 @@
 use super::registers::{LoopyRegister, Mask, ObjectAttributeEntry, PpuControl, Status};
-use crate::cartridge::Cartridge;
+use crate::cartridge::ChrRom;
 use crate::video::Frame;
 
 pub struct Ppu2C02 {
@@ -9,7 +9,7 @@ pub struct Ppu2C02 {
     pub table_pattern: [[u8; 4096]; 2],
     // paletas/cores
     pub table_palette: [u8; 32],
-    pub cartridge: Option<*mut Cartridge>,
+    pub chr_rom: ChrRom,
 
     // auxiliares
     pub sprite_screen: Frame,             // Tela final 256x240
@@ -71,12 +71,12 @@ pub struct Ppu2C02 {
 }
 
 impl Ppu2C02 {
-    pub fn new() -> Ppu2C02 {
+    pub fn new(chr_rom: ChrRom) -> Ppu2C02 {
         Ppu2C02 {
             table_name: [[0; 1024]; 2],
             table_pattern: [[0; 4096]; 2],
             table_palette: [0; 32],
-            cartridge: None,
+            chr_rom,
             sprite_screen: Frame::new(256, 240),
             sprite_name_table: [Frame::new(256, 240), Frame::new(256, 240)], // unused
             sprite_pattern_table: [Frame::new(128, 128), Frame::new(128, 128)],
@@ -117,23 +117,6 @@ impl Ppu2C02 {
 
             nmi: false,
         }
-    }
-
-    pub fn get_cartridge(&mut self) -> Option<&mut Cartridge> {
-        if let Some(cartridge) = self.cartridge {
-            unsafe {
-                if let Some(cart) = cartridge.as_mut() {
-                    return Some(cart);
-                }
-            }
-            return None;
-        }
-
-        return None;
-    }
-
-    pub fn connect_cartridge(&mut self, cartridge: &mut Cartridge) {
-        self.cartridge = Some(cartridge);
     }
 
     pub fn reset(&mut self) {

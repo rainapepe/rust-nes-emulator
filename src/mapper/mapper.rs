@@ -1,9 +1,11 @@
 use super::mappers;
 
+#[derive(Clone, Copy)]
 pub enum MapperType {
     Mapper000,
 }
 
+#[derive(Clone, Copy)]
 pub struct Mapper {
     pub prg_banks: u8,
     pub chr_banks: u8,

@@ -11,16 +11,11 @@ use nes::Nes;
 use video::Pixel;
 
 fn main() {
-    let mut nes = Nes::new();
+    let mut nes = Nes::new_with_cartridge("roms/donkeykong.nes");
 
-    nes.insert_cartridge("roms/donkeykong.nes");
-    nes.bus.ppu.sprite_screen.set_border(Pixel::new(255, 0, 0));
-    nes.bus.ppu.sprite_pattern_table[0].set_border(Pixel::new(255, 0, 0));
-    nes.bus.ppu.sprite_pattern_table[1].set_border(Pixel::new(255, 0, 0));
-
-    if let Some(cart) = &mut nes.bus.cartridge {
-        println!("cart in main: {}", cart.prg_memory[0x3fff]);
-    }
+    // nes.bus.ppu.sprite_screen.set_border(Pixel::new(255, 0, 0));
+    // nes.bus.ppu.sprite_pattern_table[0].set_border(Pixel::new(255, 0, 0));
+    // nes.bus.ppu.sprite_pattern_table[1].set_border(Pixel::new(255, 0, 0));
 
     nes.start();
 }
