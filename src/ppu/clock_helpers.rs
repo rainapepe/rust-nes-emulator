@@ -1,3 +1,5 @@
+use crate::video::Pixel;
+
 use super::Ppu2C02;
 
 impl Ppu2C02 {
@@ -161,5 +163,152 @@ impl Ppu2C02 {
                 }
             }
         }
+    }
+
+    fn get_backgroud_pixel(&self) -> (u8, u8) {
+        // We only render backgrounds if the PPU is enabled to do so. Note if
+        // background rendering is disabled, the pixel and palette combine
+        // to form 0x00. This will fall through the colour tables to yield
+        // the current background colour in effect
+        if self.mask.get_render_background() {
+            if self.mask.get_render_background_left() || self.cycle >= 9 {
+                // Handle Pixel Selection by selecting the relevant bit
+                // depending upon fine x scolling. This has the effect of
+                // offsetting ALL background rendering by a set number
+                // of pixels, permitting smooth scrolling
+                let bit_mux: u16 = 0x8000 >> self.fine_x;
+
+                // Select Plane pixels by extracting from the shifter
+                // at the required location.
+                let lsb_pixel = ((self.bg_shifter_pattern_lo & bit_mux) > 0) as u8;
+                let msb_pixel = ((self.bg_shifter_pattern_hi & bit_mux) > 0) as u8;
+
+                // Combine to form pixel index
+                let bg_pixel = (msb_pixel << 1) | lsb_pixel;
+
+                // Get palette
+                let lsb_palette = ((self.bg_shifter_attrib_lo & bit_mux) > 0) as u8;
+                let msb_pallete = ((self.bg_shifter_attrib_hi & bit_mux) > 0) as u8;
+
+                let bg_palette = (msb_pallete << 1) | lsb_palette;
+
+                return (bg_pixel, bg_palette);
+            }
+        }
+        return (0, 0);
+    }
+
+    fn get_foreground_pixel(&mut self) -> (u8, u8, bool) {
+        // Foreground =============================================================
+        // uint8_t fg_pixel = 0x00;   // The 2-bit pixel to be rendered
+        // uint8_t fg_palette = 0x00; // The 3-bit index of the palette the pixel indexes
+        // uint8_t fg_priority = 0x00;// A bit of the sprite attribute indicates if its
+        // more important than the background
+        if self.mask.get_render_sprites() {
+            // Iterate through all sprites for this scanline. This is to maintain
+            // sprite priority. As soon as we find a non transparent pixel of
+            // a sprite we can abort
+            if self.mask.get_render_sprites_left() || (self.cycle >= 9) {
+                self.sprite_zero_being_rendered = false;
+
+                for i in 0..self.sprite_count as usize {
+                    // Scanline cycle has "collided" with sprite, shifters taking over
+                    if self.sprite_scanline[i].x == 0 {
+                        // Note Fine X scrolling does not apply to sprites, the game
+                        // should maintain their relationship with the background. So
+                        // we'll just use the MSB of the shifter
+
+                        // Determine the pixel value...
+                        let pixel_lsb = ((self.sprite_shifter_pattern_lo[i] & 0x80) > 0) as u8;
+                        let pixel_msb = ((self.sprite_shifter_pattern_hi[i] & 0x80) > 0) as u8;
+                        let fg_pixel = (pixel_msb << 1) | pixel_lsb;
+
+                        // If pixel is not transparent, we render it, and dont
+                        // bother checking the rest because the earlier sprites
+                        // in the list are higher priority
+                        if fg_pixel != 0 {
+                            if i == 0
+                            // Is this sprite zero?
+                            {
+                                self.sprite_zero_being_rendered = true;
+                            }
+
+                            // Extract the palette from the bottom two bits. Recall
+                            // that foreground palettes are the latter 4 in the
+                            // palette memory.
+                            let fg_palette = (self.sprite_scanline[i].attribute & 0x03) + 0x04;
+                            let fg_priority = (self.sprite_scanline[i].attribute & 0x20) == 0;
+
+                            return (fg_pixel, fg_palette, fg_priority);
+                        }
+                    }
+                }
+            }
+        }
+
+        return (0, 0, false);
+    }
+
+    pub fn get_cycle_pixel(&mut self) -> (u8, u8) {
+        let (bg_pixel, bg_palette) = self.get_backgroud_pixel();
+        let (fg_pixel, fg_palette, fg_priority) = self.get_foreground_pixel();
+
+        if bg_pixel == 0 && fg_pixel == 0 {
+            // The background pixel is transparent
+            // The foreground pixel is transparent
+            // No winner, draw "background" colour
+            return (0, 0);
+        }
+
+        if bg_pixel == 0 && fg_pixel > 0 {
+            // The background pixel is transparent
+            // The foreground pixel is visible
+            // Foreground wins!
+            return (fg_pixel, fg_palette);
+        }
+
+        if bg_pixel > 0 && fg_pixel == 0 {
+            // The background pixel is visible
+            // The foreground pixel is transparent
+            // Background wins!
+            return (bg_pixel, bg_palette);
+        }
+
+        if bg_pixel > 0 && fg_pixel > 0 {
+            // Sprite Zero Hit detection
+            if self.sprite_zero_hit_possible && self.sprite_zero_being_rendered {
+                // Sprite zero is a collision between foreground and background
+                // so they must both be enabled
+                if self.mask.get_render_background() && self.mask.get_render_sprites() {
+                    // The left edge of the screen has specific switches to control
+                    // its appearance. This is used to smooth inconsistencies when
+                    // scrolling (since sprites x coord must be >= 0)
+                    if !(self.mask.get_render_background_left()
+                        || self.mask.get_render_sprites_left())
+                    {
+                        if self.cycle >= 9 && self.cycle < 258 {
+                            self.status.set_sprite_zero_hit(1);
+                        }
+                    } else {
+                        if self.cycle >= 1 && self.cycle < 258 {
+                            self.status.set_sprite_zero_hit(1);
+                        }
+                    }
+                }
+            }
+
+            // The background pixel is visible
+            // The foreground pixel is visible
+            // Hmmm...
+            if fg_priority {
+                // Foreground cheats its way to victory!
+                return (fg_pixel, fg_palette);
+            } else {
+                // Background is considered more important!
+                return (bg_pixel, bg_palette);
+            }
+        }
+
+        return (0, 0);
     }
 }

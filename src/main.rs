@@ -11,7 +11,8 @@ use nes::Nes;
 use video::Pixel;
 
 fn main() {
-    let mut nes = Nes::new_with_cartridge("roms/donkeykong.nes");
+    // let mut nes = Nes::new_with_cartridge("roms/donkeykong.nes");
+    let mut nes = Nes::new_with_cartridge("roms/helloworld.nes");
 
     // nes.bus.ppu.sprite_screen.set_border(Pixel::new(255, 0, 0));
     // nes.bus.ppu.sprite_pattern_table[0].set_border(Pixel::new(255, 0, 0));
