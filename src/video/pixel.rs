@@ -6,6 +6,10 @@ impl Pixel {
         Pixel(r, g, b)
     }
 
+    pub fn white() -> Pixel {
+        Pixel(255, 255, 255)
+    }
+
     pub fn red() -> Pixel {
         Pixel(255, 0, 0)
     }

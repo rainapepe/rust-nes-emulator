@@ -5,10 +5,10 @@ use rand::Rng;
 
 use std::{thread, time::Duration};
 
-use crate::bus::Bus;
 use crate::cartridge::Cartridge;
 use crate::cpu::Cpu6502;
 use crate::video::{draw_text, Frame, Pixel, Video, BLACK_PIXEL};
+use crate::{bus::Bus, video::draw_cpu};
 
 pub const GAME_CODE: [u8; 309] = [
     /*
@@ -92,7 +92,8 @@ impl Video for SnakeGame {
 
         // Draws
         self.draw_screen(context, gl);
-        draw_text(500, 200, "HELLO WORLD", Pixel::red(), context, gl, glyphs);
+        // draw_text(500, 200, "HELLO WORLD", Pixel::red(), context, gl, glyphs);
+        draw_cpu(550, 50, &mut self.cpu, context, gl, glyphs);
     }
 
     fn on_buttom_press(&mut self, key: Key) {
