@@ -25,6 +25,24 @@ impl Cartridge {
 
         cart
     }
+
+    pub fn empty() -> Cartridge {
+        let mut cart = Cartridge {
+            image_valid: false,
+            mirror: Mirror::Horizontal,
+            mapper_id: 0,
+            prg_banks: 1,
+            chr_banks: 0,
+            prg_memory: vec![],
+            chr_memory: vec![],
+            mapper: Mapper::create_mapper_000(1, 0),
+        };
+
+        cart.prg_memory.resize(16384, 0);
+        cart.chr_memory.resize(8192, 0);
+
+        cart
+    }
 }
 
 pub fn read_struct<T, R: Read>(read: &mut R) -> std::io::Result<T> {
@@ -95,7 +113,8 @@ impl Cartridge {
         match file_type {
             1 => {
                 self.prg_banks = header.prg_rom_chunks;
-                // self.prg_memory.resize((self.prg_banks as usize) * 16384, 0);
+                // self.prg_memory.resize(16384, 0);
+                self.chr_memory.resize(8192, 0);
                 self.prg_memory = read_vec(&mut reader, (self.prg_banks as usize) * 16384)?;
                 self.chr_banks = header.chr_rom_chunks;
 
@@ -119,10 +138,8 @@ impl Cartridge {
 
         self.image_valid = true;
 
-        println!("cartridge.prg_memory");
-        // print_buffer_hex(&test, 16384);
-        // print_buffer_hex(&self.prg_memory, self.prg_memory.len());
-        print_buffer_hex(&self.chr_memory, self.chr_memory.len());
+        print_buffer_hex(&self.prg_memory, 16384);
+        // print_buffer_hex(&self.chr_memory, self.chr_memory.len());
 
         // println!("load mapper {}", self.mapper.get_type());
 

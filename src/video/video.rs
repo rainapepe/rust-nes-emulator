@@ -16,9 +16,9 @@ use piston::{window::WindowSettings, ReleaseEvent};
 pub trait Video {
     fn draw(&mut self, context: Context, gl: &mut GlGraphics);
 
-    fn on_buttom_press(&mut self, key: Key);
+    fn on_buttom_press(&mut self, key: Key) {}
 
-    fn on_buttom_release(&mut self, key: Key);
+    fn on_buttom_release(&mut self, key: Key) {}
 
     fn start_loop(&mut self, title: &str) {
         let opengl = OpenGL::V3_2;

@@ -1,4 +1,4 @@
-use super::addres_mode::AddresMode;
+use super::addres_mode::AddressMode;
 use super::{Cpu6502, Flags6502};
 
 // Opcodes ======================================================
@@ -256,7 +256,7 @@ impl Cpu6502 {
         self.set_flag(Flags6502::Z, self.temp == 0);
         self.set_flag(Flags6502::N, (self.temp & 0x80) > 0);
 
-        if let AddresMode::IMP = self.get_instruction().addres_mode {
+        if let AddressMode::IMP = self.get_instruction().addres_mode {
             self.a = (self.temp & 0x00FF) as u8;
         } else {
             self.write(self.addr_abs, (self.temp & 0x00FF) as u8);
@@ -561,6 +561,7 @@ impl Cpu6502 {
     fn lda(&mut self) -> u8 {
         self.fetch();
         self.a = self.fetched;
+        println!("Register A: {:#06x}", self.a);
 
         self.set_flag(Flags6502::Z, self.a == 0);
         self.set_flag(Flags6502::N, (self.a & 0x80) > 0);
@@ -603,7 +604,7 @@ impl Cpu6502 {
         self.set_flag(Flags6502::Z, (self.temp & 0x00FF) == 0);
         self.set_flag(Flags6502::N, (self.temp & 0x80) > 0);
 
-        if let AddresMode::IMP = self.get_instruction().addres_mode {
+        if let AddressMode::IMP = self.get_instruction().addres_mode {
             self.a = (self.temp & 0x00FF) as u8;
         } else {
             self.write(self.addr_abs, (self.temp & 0x00FF) as u8);
@@ -683,7 +684,7 @@ impl Cpu6502 {
         self.set_flag(Flags6502::Z, (self.temp & 0x00FF) == 0);
         self.set_flag(Flags6502::N, (self.temp & 0x0080) > 0);
 
-        if let AddresMode::IMP = self.get_instruction().addres_mode {
+        if let AddressMode::IMP = self.get_instruction().addres_mode {
             self.a = (self.temp & 0x00FF) as u8;
         } else {
             self.write(self.addr_abs, (self.temp & 0x00FF) as u8);
@@ -701,7 +702,7 @@ impl Cpu6502 {
         self.set_flag(Flags6502::Z, (self.temp & 0x00FF) == 0);
         self.set_flag(Flags6502::N, (self.temp & 0x0080) > 0);
 
-        if let AddresMode::IMP = self.get_instruction().addres_mode {
+        if let AddressMode::IMP = self.get_instruction().addres_mode {
             self.a = (self.temp & 0x00FF) as u8;
         } else {
             self.write(self.addr_abs, (self.temp & 0x00FF) as u8);

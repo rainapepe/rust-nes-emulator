@@ -14,6 +14,7 @@ impl Ppu2C02 {
         // "palette << 2" - Cada paleta tem 4 bytes de tamanho
         // "pixel"        - Cada pixel tem o index entre 0, 1, 2 or 3
         // let color = self.ppu_read(0x3F00 + ((palette as u16) << 2) + pixel as u16);
+        // println!("color: {}", color);
         // get_color(color)
     }
 

@@ -13,37 +13,58 @@ use super::Cpu6502;
 // and address function return 1, then an additional clock cycle is required.
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub enum AddresMode {
+pub enum AddressMode {
+    /** Address Mode: Implied */
     IMP,
+    /** Address Mode: Immediate */
     IMM,
+    /** Address Mode: Zero Page */
     ZP0,
+    /** Address Mode:  Zero Page with X Offset */
     ZPX,
+    /** Address Mode: Zero Page with Y Offset */
     ZPY,
+    /** Address Mode: Relative */
     REL,
+    /** Address Mode: Absolute */
     ABS,
+    /** Address Mode:  Absolute with X Offset */
     ABX,
+    /** Address Mode:  Absolute with Y Offset */
     ABY,
+    /** Address Mode: Indirect */
     IND,
+    /** Address Mode: Indirect X */
     IZX,
+    /** Address Mode: Indirect Y */
     IZY,
+    /** Address Mode: Acumulator */
+    ACC,
 }
 
 impl Cpu6502 {
-    pub fn addres_mode(&mut self, addr_mode: AddresMode) -> u8 {
+    pub fn addres_mode(&mut self, addr_mode: AddressMode) -> u8 {
         match addr_mode {
-            AddresMode::IMP => self.imp(),
-            AddresMode::IMM => self.imm(),
-            AddresMode::ZP0 => self.zp0(),
-            AddresMode::ZPX => self.zpx(),
-            AddresMode::ZPY => self.zpy(),
-            AddresMode::REL => self.rel(),
-            AddresMode::ABS => self.abs(),
-            AddresMode::ABX => self.abx(),
-            AddresMode::ABY => self.aby(),
-            AddresMode::IND => self.ind(),
-            AddresMode::IZX => self.izx(),
-            AddresMode::IZY => self.izy(),
+            AddressMode::IMP => self.imp(),
+            AddressMode::IMM => self.imm(),
+            AddressMode::ZP0 => self.zp0(),
+            AddressMode::ZPX => self.zpx(),
+            AddressMode::ZPY => self.zpy(),
+            AddressMode::REL => self.rel(),
+            AddressMode::ABS => self.abs(),
+            AddressMode::ABX => self.abx(),
+            AddressMode::ABY => self.aby(),
+            AddressMode::IND => self.ind(),
+            AddressMode::IZX => self.izx(),
+            AddressMode::IZY => self.izy(),
+            AddressMode::ACC => self.acc(),
         }
+    }
+
+    fn acc(&mut self) -> u8 {
+        self.fetched = 0;
+        println!("ACCUMULATOR ADDRESS");
+        0
     }
 
     /** Address Mode: Implied.
@@ -60,7 +81,9 @@ impl Cpu6502 {
     a instrução usa o próximo byte como valor, vamos preparar para ler o endereço do próximo byte
      */
     fn imm(&mut self) -> u8 {
-        self.addr_abs = self.pc_next();
+        self.addr_abs = self.pc;
+        self.pc_next();
+        println!("addr_abs: {:#06x}", self.addr_abs);
         0
     }
 

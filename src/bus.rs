@@ -45,7 +45,7 @@ pub struct Bus {
     pub prg_rom: PrgRom,
     pub pad1: Pad,
     pub pad2: Pad,
-    ram: [u8; 2048],
+    pub ram: [u8; 2048],
     // A count of how many clocks have passed
     pub system_clock_counter: u32,
 

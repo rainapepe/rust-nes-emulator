@@ -1,6 +1,7 @@
 use crate::bus::Bus;
 
 // O registrador de status armazena 8 flags, para facilitar o acesso foi criado um enum para cada flag
+#[derive(Clone, Copy)]
 pub enum Flags6502 {
     /** Carry Bit */
     C = 1 << 0,
@@ -94,7 +95,7 @@ impl Cpu6502 {
 
 // Funções para manipular flags
 impl Cpu6502 {
-    pub fn get_flag(&self, flag: Flags6502) -> u8 {
+    pub fn get_flag(&mut self, flag: Flags6502) -> u8 {
         // Ao utilizar o bitwise AND do status com a flag representante o resultado deve
         // ser o próprio valor da flag se o status for verdadeiro
         // Exemplos:
@@ -112,7 +113,7 @@ impl Cpu6502 {
         if value {
             self.status |= flag as u8;
         } else {
-            self.status &= flag as u8;
+            self.status &= !(flag as u8);
         }
     }
 }
@@ -131,19 +132,22 @@ impl Cpu6502 {
 
     pub fn stkp_push(&mut self, value: u8) {
         self.write(0x0100 + self.stkp as u16, value);
-        if self.stkp == 0 {
-            self.stkp = 255;
-        } else {
-            self.stkp -= 1;
-        }
+        self.stkp -= 1;
+
+        // if self.stkp == 0 {
+        //     self.stkp = 255;
+        // } else {
+        //     self.stkp -= 1;
+        // }
     }
 
     pub fn stkp_pop(&mut self) -> u8 {
-        if self.stkp == 255 {
-            self.stkp = 0;
-        } else {
-            self.stkp += 1;
-        }
+        self.stkp += 1;
+        // if self.stkp == 255 {
+        //     self.stkp = 0;
+        // } else {
+        //     self.stkp += 1;
+        // }
         self.read(0x0100 + self.stkp as u16)
     }
 
@@ -162,9 +166,14 @@ impl Cpu6502 {
         let lo = self.read(addres) as u16;
         let hi = self.read(addres + 1) as u16;
 
-        // println!("hi: {:#06x} lo: {:#06x}", hi, lo);
-
         (hi << 8) | lo
+    }
+
+    pub fn write_16b(&mut self, addres: u16, data: u16) {
+        let hi = (data >> 8) as u8;
+        let lo = (data & 0xFF) as u8;
+        self.write(addres, lo);
+        self.write(addres + 1, hi);
     }
 
     pub fn read_next_16b(&mut self) -> u16 {
@@ -174,5 +183,11 @@ impl Cpu6502 {
         self.pc_next();
 
         (hi << 8) | lo
+    }
+
+    pub fn load(&mut self, addres: u16, data: Vec<u8>) {
+        let addres = addres as usize;
+        self.bus.ram[addres..(addres + data.len())].copy_from_slice(&data[..]);
+        self.write_16b(0xFFFC, addres as u16);
     }
 }

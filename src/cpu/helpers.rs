@@ -1,4 +1,4 @@
-use super::addres_mode::AddresMode;
+use super::addres_mode::AddressMode;
 use super::instruction::get_instruction_by_id;
 use super::Cpu6502;
 
@@ -67,73 +67,73 @@ impl Cpu6502 {
             s_inst += &format!("{} ", instruction.name);
 
             match instruction.addres_mode {
-                AddresMode::IMP => {
+                AddressMode::IMP => {
                     s_inst += " {IMP}";
                 }
-                AddresMode::IMM => {
+                AddressMode::IMM => {
                     value = self.bus_read(addr as u16, true);
                     addr += 1;
                     s_inst += &format!("#${} {{IMM}}", to_hex(value as u32, 2));
                 }
-                AddresMode::ZP0 => {
+                AddressMode::ZP0 => {
                     lo = self.bus_read(addr as u16, true);
                     addr += 1;
                     hi = 0x00;
                     s_inst += &format!("${} {{ZP0}}", to_hex(lo as u32, 2));
                 }
-                AddresMode::ZPX => {
+                AddressMode::ZPX => {
                     lo = self.bus_read(addr as u16, true);
                     addr += 1;
                     hi = 0x00;
                     s_inst += &format!("${}, X {{ZPX}}", to_hex(lo as u32, 2));
                 }
-                AddresMode::ZPY => {
+                AddressMode::ZPY => {
                     lo = self.bus_read(addr as u16, true);
                     addr += 1;
                     hi = 0x00;
                     s_inst += &format!("${}, Y {{ZPY}}", to_hex(lo as u32, 2));
                 }
-                AddresMode::IZX => {
+                AddressMode::IZX => {
                     lo = self.bus_read(addr as u16, true);
                     addr += 1;
                     hi = 0x00;
                     s_inst += &format!("${}, X {{IZX}}", to_hex(lo as u32, 2));
                 }
-                AddresMode::IZY => {
+                AddressMode::IZY => {
                     lo = self.bus_read(addr as u16, true);
                     addr += 1;
                     hi = 0x00;
                     s_inst += &format!("${}, Y {{IZY}}", to_hex(lo as u32, 2));
                 }
-                AddresMode::ABS => {
+                AddressMode::ABS => {
                     lo = self.bus_read(addr as u16, true);
                     addr += 1;
                     hi = self.bus_read(addr as u16, true);
                     addr += 1;
                     s_inst += &format!("${} {{ABS}}", to_hex(((hi << 8) | lo) as u32, 2));
                 }
-                AddresMode::ABX => {
+                AddressMode::ABX => {
                     lo = self.bus_read(addr as u16, true);
                     addr += 1;
                     hi = self.bus_read(addr as u16, true);
                     addr += 1;
                     s_inst += &format!("${}, X {{ABX}}", to_hex(((hi << 8) | lo) as u32, 2));
                 }
-                AddresMode::ABY => {
+                AddressMode::ABY => {
                     lo = self.bus_read(addr as u16, true);
                     addr += 1;
                     hi = self.bus_read(addr as u16, true);
                     addr += 1;
                     s_inst += &format!("${}, Y {{ABY}}", to_hex(((hi << 8) | lo) as u32, 2));
                 }
-                AddresMode::IND => {
+                AddressMode::IND => {
                     lo = self.bus_read(addr as u16, true);
                     addr += 1;
                     hi = self.bus_read(addr as u16, true);
                     addr += 1;
                     s_inst += &format!("(${}) {{IND}}", to_hex(((hi << 8) | lo) as u32, 2));
                 }
-                AddresMode::REL => {
+                AddressMode::REL => {
                     value = self.bus_read(addr as u16, true);
                     addr += 1;
                     s_inst += &format!(

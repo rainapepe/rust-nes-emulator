@@ -13,10 +13,7 @@ impl Cpu6502 {
     pub fn reset(&mut self) {
         // Get address to set program counter to
         self.addr_abs = 0xFFFC;
-        let lo = self.read(self.addr_abs + 0) as u16;
-        let hi = self.read(self.addr_abs + 1) as u16;
-
-        self.pc = (hi << 8) | lo;
+        self.pc = self.read_16b(self.addr_abs);
 
         // limpar registradores
         self.a = 0;
@@ -114,7 +111,7 @@ impl Cpu6502 {
         if self.cycles == 0 {
             // Ler o próximo byte de instrução, o valor desse Byte é para achar
             // qual é a operação e addresmode na tabela de tradução
-            // println!("pc: {}", self.pc);
+            println!("pc: {:#06x}", self.pc);
 
             // unsafe {
             //     if let Some(bus) = self.bus.as_mut() {
@@ -126,7 +123,7 @@ impl Cpu6502 {
 
             self.opcode = self.read(self.pc);
 
-            // println!("opcode: {}", self.opcode);
+            println!("opcode: {:#06x}", self.opcode);
             // Sempre setar a flag unused para 1 (true)
             self.set_flag(Flags6502::U, true);
 
@@ -148,15 +145,15 @@ impl Cpu6502 {
             // aplicar o addres mode e guardar os ciclos adicionais
             let aditional_cycles1 = self.addres_mode(instruction.addres_mode);
 
-            // println!("fetch: {}", self.fetched);
-
             // executar o opcode e guardar os ciclos adicionais
             let aditional_cycles2 = self.opcode(instruction.opcode);
 
-            // println!(
-            //     "instruction({:?},{:?}) - finished",
-            //     instruction.opcode, instruction.addres_mode
-            // );
+            println!("fetch: {}", self.fetched);
+
+            println!(
+                "instruction({:?},{:?}) - finished",
+                instruction.opcode, instruction.addres_mode
+            );
 
             // adicionar ciclos
             self.cycles += aditional_cycles1 & aditional_cycles2;

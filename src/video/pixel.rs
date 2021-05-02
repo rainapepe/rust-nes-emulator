@@ -23,9 +23,9 @@ impl Pixel {
             // self.0 as f32,
             // self.1 as f32,
             // self.2 as f32,
-            (self.0 / 255) as f32,
-            (self.1 / 255) as f32,
-            (self.2 / 255) as f32,
+            (self.0 as f32 / 255.0),
+            (self.1 as f32 / 255.0),
+            (self.2 as f32 / 255.0),
             1.0,
         ]
     }
