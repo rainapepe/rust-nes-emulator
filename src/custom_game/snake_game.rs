@@ -3,12 +3,12 @@ use piston::Key;
 use piston_window::{G2d, Glyphs};
 use rand::Rng;
 
-use std::{thread, time::Duration};
+use std::{collections::HashMap, thread, time::Duration};
 
-use crate::cartridge::Cartridge;
 use crate::cpu::Cpu6502;
 use crate::video::{draw_text, Frame, Pixel, Video, BLACK_PIXEL};
 use crate::{bus::Bus, video::draw_cpu};
+use crate::{cartridge::Cartridge, video::draw_code};
 
 pub const GAME_CODE: [u8; 309] = [
     /*
@@ -52,6 +52,7 @@ fn color(byte: u8) -> Pixel {
 pub struct SnakeGame {
     pub cpu: Cpu6502,
     running: bool,
+    map_assemble: HashMap<u16, String>,
 }
 
 // Draws
@@ -94,6 +95,16 @@ impl Video for SnakeGame {
         self.draw_screen(context, gl);
         // draw_text(500, 200, "HELLO WORLD", Pixel::red(), context, gl, glyphs);
         draw_cpu(550, 50, &mut self.cpu, context, gl, glyphs);
+        draw_code(
+            self.cpu.pc,
+            &self.map_assemble,
+            550,
+            200,
+            1,
+            context,
+            gl,
+            glyphs,
+        )
     }
 
     fn on_buttom_press(&mut self, key: Key) {
@@ -121,6 +132,7 @@ impl SnakeGame {
         SnakeGame {
             cpu: Cpu6502::new_with_bus(bus),
             running: false,
+            map_assemble: HashMap::new(),
         }
     }
 
@@ -131,7 +143,7 @@ impl SnakeGame {
 
         self.cpu.write(0x0200, 3);
         self.cpu.write(0x0200 + (31 * 32) + 31, 3);
-
+        self.map_assemble = self.cpu.disassemble(0x0600, 0x0735);
         self.start_loop("Snake Game");
     }
 }

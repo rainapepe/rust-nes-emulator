@@ -6,4 +6,4 @@ mod instruction;
 mod opcode;
 
 pub use cpu6502::*;
-pub use instruction::{get_instruction_by_id, Instruction};
+pub use instruction::Instruction;

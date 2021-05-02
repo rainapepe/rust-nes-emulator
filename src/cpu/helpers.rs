@@ -1,19 +1,8 @@
 use super::addres_mode::AddressMode;
-use super::instruction::get_instruction_by_id;
+use super::instruction::Instruction;
 use super::Cpu6502;
 
 use std::collections::HashMap;
-
-// A convenient utility to convert variables into
-// hex strings because "modern C++"'s method with
-// streams is atrocious
-// auto hex = [](uint32_t n, uint8_t d)
-// {
-//     std::string s(d, '0');
-//     for (int i = d - 1; i >= 0; i--, n >>= 4)
-//         s[i] = "0123456789ABCDEF"[n & 0xF];
-//     return s;
-// };
 
 const HEX_TABLE: &str = "0123456789ABCDEF";
 
@@ -63,7 +52,7 @@ impl Cpu6502 {
 
             let opcode = self.read(addr as u16);
             addr += 1;
-            let instruction = get_instruction_by_id(opcode);
+            let instruction = Instruction::from(opcode);
             s_inst += &format!("{} ", instruction.name);
 
             match instruction.addres_mode {
@@ -110,28 +99,28 @@ impl Cpu6502 {
                     addr += 1;
                     hi = self.bus_read(addr as u16, true);
                     addr += 1;
-                    s_inst += &format!("${} {{ABS}}", to_hex(((hi << 8) | lo) as u32, 2));
+                    s_inst += &format!("${} {{ABS}}", to_hex(((hi as u32) << 8) | lo as u32, 2));
                 }
                 AddressMode::ABX => {
                     lo = self.bus_read(addr as u16, true);
                     addr += 1;
                     hi = self.bus_read(addr as u16, true);
                     addr += 1;
-                    s_inst += &format!("${}, X {{ABX}}", to_hex(((hi << 8) | lo) as u32, 2));
+                    s_inst += &format!("${}, X {{ABX}}", to_hex(((hi as u32) << 8) | lo as u32, 2));
                 }
                 AddressMode::ABY => {
                     lo = self.bus_read(addr as u16, true);
                     addr += 1;
                     hi = self.bus_read(addr as u16, true);
                     addr += 1;
-                    s_inst += &format!("${}, Y {{ABY}}", to_hex(((hi << 8) | lo) as u32, 2));
+                    s_inst += &format!("${}, Y {{ABY}}", to_hex(((hi as u32) << 8) | lo as u32, 2));
                 }
                 AddressMode::IND => {
                     lo = self.bus_read(addr as u16, true);
                     addr += 1;
                     hi = self.bus_read(addr as u16, true);
                     addr += 1;
-                    s_inst += &format!("(${}) {{IND}}", to_hex(((hi << 8) | lo) as u32, 2));
+                    s_inst += &format!("(${}) {{IND}}", to_hex(((hi as u32) << 8) | lo as u32, 2));
                 }
                 AddressMode::REL => {
                     value = self.bus_read(addr as u16, true);
