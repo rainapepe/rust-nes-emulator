@@ -2,7 +2,7 @@ extern crate graphics;
 extern crate opengl_graphics;
 
 use graphics::Context;
-use opengl_graphics::GlGraphics;
+use piston_window::G2d;
 
 use super::pixel::{Pixel, BLACK_PIXEL};
 
@@ -43,14 +43,7 @@ impl Frame {
         }
     }
 
-    pub fn render(
-        &self,
-        x: usize,
-        y: usize,
-        pixel_size: f64,
-        context: Context,
-        gl: &mut GlGraphics,
-    ) {
+    pub fn render(&self, x: usize, y: usize, pixel_size: f64, context: Context, gl: &mut G2d) {
         for pixel_y in 0..self.height {
             for pixel_x in 0..self.width {
                 let position: usize = (pixel_y * self.width) + pixel_x;

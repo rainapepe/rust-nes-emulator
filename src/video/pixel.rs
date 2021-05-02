@@ -6,23 +6,20 @@ impl Pixel {
         Pixel(r, g, b)
     }
 
-    pub fn red(&self) -> u8 {
-        self.0
+    pub fn red() -> Pixel {
+        Pixel(255, 0, 0)
     }
 
-    pub fn green(&self) -> u8 {
-        self.1
+    pub fn green() -> Pixel {
+        Pixel(0, 255, 0)
     }
 
-    pub fn blue(&self) -> u8 {
-        self.2
+    pub fn blue() -> Pixel {
+        Pixel(0, 0, 255)
     }
 
     pub fn get_color(&self) -> [f32; 4] {
         [
-            // self.0 as f32,
-            // self.1 as f32,
-            // self.2 as f32,
             (self.0 as f32 / 255.0),
             (self.1 as f32 / 255.0),
             (self.2 as f32 / 255.0),

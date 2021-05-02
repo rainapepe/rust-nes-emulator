@@ -1,6 +1,7 @@
-use graphics::{clear, text, text::Text, Context};
+use graphics::{clear, text, text::Text, CharacterCache, Context};
 use opengl_graphics::GlGraphics;
 use piston::Key;
+use piston_window::{G2d, Glyphs};
 
 use crate::cartridge::Cartridge;
 use crate::pad::PadButton;
@@ -16,7 +17,7 @@ pub struct Nes {
 
 // Draws
 impl Nes {
-    fn draw_palette(&mut self, context: Context, gl: &mut GlGraphics) {
+    fn draw_palette(&mut self, context: Context, gl: &mut G2d) {
         // Draw Palettes & Pattern Tables ==============================================
         let swatch_size = 8;
         for p in 0..8 {
@@ -36,7 +37,7 @@ impl Nes {
         }
     }
 
-    fn draw_patterns(&mut self, context: Context, gl: &mut GlGraphics) {
+    fn draw_patterns(&mut self, context: Context, gl: &mut G2d) {
         let ppu = &mut self.cpu.bus.ppu;
         // Draw pattern
         ppu.get_pattern_table(0, self.palette_table)
@@ -45,7 +46,7 @@ impl Nes {
             .render(960, 420, 1.8, context, gl);
     }
 
-    fn draw_screen(&mut self, context: Context, gl: &mut GlGraphics) {
+    fn draw_screen(&mut self, context: Context, gl: &mut G2d) {
         self.cpu
             .bus
             .ppu
@@ -55,7 +56,7 @@ impl Nes {
 }
 
 impl Video for Nes {
-    fn draw(&mut self, context: Context, gl: &mut GlGraphics) {
+    fn draw(&mut self, context: Context, gl: &mut G2d, glyphs: &mut Glyphs) {
         clear(BLACK_PIXEL.get_color(), gl);
         if self.running {
             loop {

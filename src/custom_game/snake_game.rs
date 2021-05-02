@@ -1,6 +1,6 @@
-use graphics::{clear, text, text::Text, Context};
-use opengl_graphics::GlGraphics;
+use graphics::{clear, CharacterCache, Context};
 use piston::Key;
+use piston_window::{G2d, Glyphs};
 use rand::Rng;
 
 use std::{thread, time::Duration};
@@ -8,7 +8,7 @@ use std::{thread, time::Duration};
 use crate::bus::Bus;
 use crate::cartridge::Cartridge;
 use crate::cpu::Cpu6502;
-use crate::video::{Frame, Pixel, Video, BLACK_PIXEL};
+use crate::video::{draw_text, Frame, Pixel, Video, BLACK_PIXEL};
 
 pub const GAME_CODE: [u8; 309] = [
     /*
@@ -56,7 +56,7 @@ pub struct SnakeGame {
 
 // Draws
 impl SnakeGame {
-    fn draw_screen(&mut self, context: Context, gl: &mut GlGraphics) {
+    fn draw_screen(&mut self, context: Context, gl: &mut G2d) {
         let mut frame = Frame::new(32, 32);
 
         for color_y in 0..32 {
@@ -73,7 +73,7 @@ impl SnakeGame {
 }
 
 impl Video for SnakeGame {
-    fn draw(&mut self, context: Context, gl: &mut GlGraphics) {
+    fn draw(&mut self, context: Context, gl: &mut G2d, glyphs: &mut Glyphs) {
         clear(BLACK_PIXEL.get_color(), gl);
         if self.running {
             if self.cpu.pc == 0x0638 {
@@ -92,6 +92,7 @@ impl Video for SnakeGame {
 
         // Draws
         self.draw_screen(context, gl);
+        draw_text(500, 200, "HELLO WORLD", Pixel::red(), context, gl, glyphs);
     }
 
     fn on_buttom_press(&mut self, key: Key) {
