@@ -111,33 +111,18 @@ impl Cpu6502 {
         if self.cycles == 0 {
             // Ler o próximo byte de instrução, o valor desse Byte é para achar
             // qual é a operação e addresmode na tabela de tradução
-            println!("pc: {:#06x}", self.pc);
-
-            // unsafe {
-            //     if let Some(bus) = self.bus.as_mut() {
-            //         if let Some(cart) = &mut bus.cartridge {
-            //             println!("cart in cpu clock: {}", cart.prg_memory[0x3fff]);
-            //         }
-            //     }
-            // }
+            // println!("pc: {:#06x}", self.pc);
 
             self.opcode = self.read(self.pc);
 
-            println!("opcode: {:#06x}", self.opcode);
+            // println!("opcode: {:#06x}", self.opcode);
             // Sempre setar a flag unused para 1 (true)
             self.set_flag(Flags6502::U, true);
 
-            // println!("pc_next");
             // Incrimentar o program counter
             self.pc_next();
 
-            // println!("get_instruction");
             let instruction = self.get_instruction();
-
-            // println!(
-            //     "instruction({:?},{:?}) - started",
-            //     instruction.opcode, instruction.addres_mode
-            // );
 
             // numero inicial de ciclos
             self.cycles = instruction.cycles;
@@ -148,12 +133,10 @@ impl Cpu6502 {
             // executar o opcode e guardar os ciclos adicionais
             let aditional_cycles2 = self.opcode(instruction.opcode);
 
-            println!("fetch: {}", self.fetched);
-
-            println!(
-                "instruction({:?},{:?}) - finished",
-                instruction.opcode, instruction.addres_mode
-            );
+            // println!(
+            //     "instruction({:?},{:?}) - finished",
+            //     instruction.opcode, instruction.addres_mode
+            // );
 
             // adicionar ciclos
             self.cycles += aditional_cycles1 & aditional_cycles2;

@@ -83,7 +83,6 @@ impl Cpu6502 {
     fn imm(&mut self) -> u8 {
         self.addr_abs = self.pc;
         self.pc_next();
-        println!("addr_abs: {:#06x}", self.addr_abs);
         0
     }
 
@@ -107,7 +106,7 @@ impl Cpu6502 {
     ranges within the first page.
      */
     fn zpx(&mut self) -> u8 {
-        self.addr_abs = self.read(self.pc + self.x as u16) as u16;
+        self.addr_abs = self.read(self.pc) as u16 + self.x as u16;
         self.pc_next();
         self.addr_abs &= 0x00FF;
         0
@@ -118,7 +117,7 @@ impl Cpu6502 {
     Same as above but uses Y Register for offset
      */
     fn zpy(&mut self) -> u8 {
-        self.addr_abs = self.read(self.pc + self.x as u16) as u16;
+        self.addr_abs = self.read(self.pc) as u16 + self.x as u16;
         self.pc_next();
         self.addr_abs &= 0x00FF;
         0

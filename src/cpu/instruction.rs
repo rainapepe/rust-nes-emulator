@@ -72,25 +72,25 @@ impl Instruction {
             0x11 => Instruction::new("ORA", Opcode::ORA, AddressMode::IZY),
 
             /* *************** shift/rotate op ***************  */
-            0x0a => Instruction::new("ASL", Opcode::ASL, AddressMode::ACC),
+            0x0a => Instruction::new("ASL", Opcode::ASL, AddressMode::IMP),
             0x06 => Instruction::new("ASL", Opcode::ASL, AddressMode::ZP0),
             0x16 => Instruction::new("ASL", Opcode::ASL, AddressMode::ZPX),
             0x0e => Instruction::new("ASL", Opcode::ASL, AddressMode::ABS),
             0x1e => Instruction::new("ASL", Opcode::ASL, AddressMode::ABX),
 
-            0x4a => Instruction::new("LSR", Opcode::LSR, AddressMode::ACC),
+            0x4a => Instruction::new("LSR", Opcode::LSR, AddressMode::IMP),
             0x46 => Instruction::new("LSR", Opcode::LSR, AddressMode::ZP0),
             0x56 => Instruction::new("LSR", Opcode::LSR, AddressMode::ZPX),
             0x4e => Instruction::new("LSR", Opcode::LSR, AddressMode::ABS),
             0x5e => Instruction::new("LSR", Opcode::LSR, AddressMode::ABX),
 
-            0x2a => Instruction::new("ROL", Opcode::ROL, AddressMode::ACC),
+            0x2a => Instruction::new("ROL", Opcode::ROL, AddressMode::IMP),
             0x26 => Instruction::new("ROL", Opcode::ROL, AddressMode::ZP0),
             0x36 => Instruction::new("ROL", Opcode::ROL, AddressMode::ZPX),
             0x2e => Instruction::new("ROL", Opcode::ROL, AddressMode::ABS),
             0x3e => Instruction::new("ROL", Opcode::ROL, AddressMode::ABX),
 
-            0x6a => Instruction::new("ROR", Opcode::ROR, AddressMode::ACC),
+            0x6a => Instruction::new("ROR", Opcode::ROR, AddressMode::IMP),
             0x66 => Instruction::new("ROR", Opcode::ROR, AddressMode::ZP0),
             0x76 => Instruction::new("ROR", Opcode::ROR, AddressMode::ZPX),
             0x6e => Instruction::new("ROR", Opcode::ROR, AddressMode::ABS),

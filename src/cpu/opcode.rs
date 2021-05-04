@@ -561,7 +561,6 @@ impl Cpu6502 {
     fn lda(&mut self) -> u8 {
         self.fetch();
         self.a = self.fetched;
-        println!("Register A: {:#06x}", self.a);
 
         self.set_flag(Flags6502::Z, self.a == 0);
         self.set_flag(Flags6502::N, (self.a & 0x80) > 0);
