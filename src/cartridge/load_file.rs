@@ -114,7 +114,7 @@ impl Cartridge {
             1 => {
                 self.prg_banks = header.prg_rom_chunks;
                 // self.prg_memory.resize(16384, 0);
-                self.chr_memory.resize(8192, 0);
+                // self.chr_memory.resize(8192, 0);
                 self.prg_memory = read_vec(&mut reader, (self.prg_banks as usize) * 16384)?;
                 self.chr_banks = header.chr_rom_chunks;
 

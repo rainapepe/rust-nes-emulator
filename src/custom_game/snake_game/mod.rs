@@ -67,9 +67,11 @@ impl Video for SnakeGame {
             let result = rng.gen_range(1, 16);
             self.cpu.write(0xfe, result);
 
-            self.cpu.cpu_clock();
-            while self.cpu.cycles > 0 {
+            for _ in 0..10 {
                 self.cpu.cpu_clock();
+                while self.cpu.cycles > 0 {
+                    self.cpu.cpu_clock();
+                }
             }
 
             if self.history.len() == 5 {
@@ -77,9 +79,6 @@ impl Video for SnakeGame {
             }
             self.history.push(self.cpu.pc);
 
-            if self.cpu.x > 20 {
-                self.cpu.x -= 20;
-            }
             // thread::sleep(Duration::new(0, 70_000));
         }
 
@@ -172,8 +171,6 @@ impl SnakeGame {
         self.cpu.load(0x0600, Vec::from(GAME_CODE));
         self.cpu.pc = 0x0600;
 
-        self.cpu.write(0x0200, 3);
-        self.cpu.write(0x0200 + (31 * 32) + 31, 3);
         self.map_assemble = self.cpu.disassemble(0x0600, 0x0735);
         self.start_loop("Snake Game");
     }

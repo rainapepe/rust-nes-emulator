@@ -1,18 +1,26 @@
+use std::collections::HashMap;
+
 use graphics::{clear, text, text::Text, CharacterCache, Context};
 use opengl_graphics::GlGraphics;
 use piston::Key;
 use piston_window::{G2d, Glyphs};
 
-use crate::cartridge::Cartridge;
-use crate::pad::PadButton;
 use crate::video::{Video, BLACK_PIXEL};
 use crate::{bus::Bus, cpu::Cpu6502};
+use crate::{
+    cartridge::Cartridge,
+    video::{draw_code, draw_cpu},
+};
+use crate::{pad::PadButton, video::draw_ram};
 
 pub struct Nes {
     pub cpu: Cpu6502,
     palette_table: u8,
     cartridge: String,
     running: bool,
+    map_assemble: HashMap<u16, String>,
+    history: Vec<u16>,
+    ram_offset: u16,
 }
 
 // Draws
@@ -59,10 +67,12 @@ impl Video for Nes {
     fn draw(&mut self, context: Context, gl: &mut G2d, glyphs: &mut Glyphs) {
         clear(BLACK_PIXEL.get_color(), gl);
         if self.running {
-            loop {
-                self.cpu.clock();
-                if self.cpu.bus.ppu.frame_complete {
-                    break;
+            for i in 0..1000 {
+                loop {
+                    self.cpu.clock();
+                    if self.cpu.bus.ppu.frame_complete {
+                        break;
+                    }
                 }
             }
 
@@ -73,6 +83,26 @@ impl Video for Nes {
         self.draw_screen(context, gl);
         self.draw_palette(context, gl);
         self.draw_patterns(context, gl);
+        draw_cpu(720, 10, &mut self.cpu, context, gl, glyphs);
+        // draw_code(
+        //     720,
+        //     150,
+        //     &self.history,
+        //     &self.map_assemble,
+        //     context,
+        //     gl,
+        //     glyphs,
+        // );
+        draw_ram(
+            720,
+            220,
+            self.ram_offset,
+            &mut self.cpu,
+            10,
+            context,
+            gl,
+            glyphs,
+        );
     }
 
     fn on_buttom_press(&mut self, key: Key) {
@@ -98,6 +128,30 @@ impl Video for Nes {
                     self.palette_table = 0;
                 } else {
                     self.palette_table += 1;
+                }
+            }
+            Key::PageDown => {
+                if self.ram_offset < (0xFFFE - 100) {
+                    self.ram_offset += 100;
+                } else {
+                    self.ram_offset = 0xFFFF;
+                }
+            }
+            Key::PageUp => {
+                if self.ram_offset > 100 {
+                    self.ram_offset -= 100;
+                } else {
+                    self.ram_offset = 0;
+                }
+            }
+            Key::NumPadPlus => {
+                if self.ram_offset < 0xFFFE {
+                    self.ram_offset += 1;
+                }
+            }
+            Key::NumPadMinus => {
+                if self.ram_offset > 0 {
+                    self.ram_offset -= 1;
                 }
             }
 
@@ -131,6 +185,9 @@ impl Nes {
             cartridge: file_name.to_string(),
             running: false,
             palette_table: 0,
+            map_assemble: HashMap::new(),
+            history: vec![],
+            ram_offset: 0,
         }
     }
 
@@ -141,6 +198,8 @@ impl Nes {
 
         self.cpu.reset();
         let cartridge = self.cartridge.to_string();
+
+        // self.map_assemble = self.cpu.disassemble(0x8000, 0xBFFF);
 
         // self.running = true;
         self.start_loop(&cartridge);
