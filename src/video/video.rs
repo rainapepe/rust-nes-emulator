@@ -15,6 +15,8 @@ use piston_window::*;
 pub trait Video {
     fn draw(&mut self, context: Context, gl: &mut G2d, glyphs: &mut Glyphs);
 
+    fn main_loop(&mut self);
+
     fn on_buttom_press(&mut self, key: Key) {}
 
     fn on_buttom_release(&mut self, key: Key) {}
@@ -36,6 +38,7 @@ pub trait Video {
 
         while let Some(e) = window.next() {
             if let Some(_) = e.render_args() {
+                self.main_loop();
                 window.draw_2d(&e, |c, gl, device| {
                     self.draw(c, gl, &mut glyphs);
                     // Update glyphs before rendering.
@@ -53,39 +56,3 @@ pub trait Video {
         }
     }
 }
-
-// match key {
-//     Key::Up => {
-//         y = y - 1;
-//         nes.ppu.sprite_screen.set_pixel(
-//             x as usize,
-//             y as usize,
-//             Pixel::new(255, 255, 255),
-//         );
-//     }
-//     Key::Down => {
-//         y = y + 1;
-//         nes.ppu.sprite_screen.set_pixel(
-//             x as usize,
-//             y as usize,
-//             Pixel::new(255, 255, 255),
-//         );
-//     }
-//     Key::Right => {
-//         x = x + 1;
-//         nes.ppu.sprite_screen.set_pixel(
-//             x as usize,
-//             y as usize,
-//             Pixel::new(255, 255, 255),
-//         );
-//     }
-//     Key::Left => {
-//         x = x - 1;
-//         nes.ppu.sprite_screen.set_pixel(
-//             x as usize,
-//             y as usize,
-//             Pixel::new(255, 255, 255),
-//         );
-//     }
-//     _ => {}
-// }

@@ -55,8 +55,7 @@ impl SnakeGame {
 }
 
 impl Video for SnakeGame {
-    fn draw(&mut self, context: Context, gl: &mut G2d, glyphs: &mut Glyphs) {
-        clear(BLACK_PIXEL.get_color(), gl);
+    fn main_loop(&mut self) {
         if self.running {
             // if self.cpu.pc == 0x06D0 {
             //     self.running = false;
@@ -81,6 +80,10 @@ impl Video for SnakeGame {
 
             // thread::sleep(Duration::new(0, 70_000));
         }
+    }
+
+    fn draw(&mut self, context: Context, gl: &mut G2d, glyphs: &mut Glyphs) {
+        clear(BLACK_PIXEL.get_color(), gl);
 
         // Draws
         self.draw_screen(context, gl);

@@ -64,20 +64,20 @@ impl Nes {
 }
 
 impl Video for Nes {
-    fn draw(&mut self, context: Context, gl: &mut G2d, glyphs: &mut Glyphs) {
-        clear(BLACK_PIXEL.get_color(), gl);
+    fn main_loop(&mut self) {
         if self.running {
-            for i in 0..1000 {
-                loop {
-                    self.cpu.clock();
-                    if self.cpu.bus.ppu.frame_complete {
-                        break;
-                    }
+            loop {
+                self.cpu.clock();
+                if self.cpu.bus.ppu.frame_complete {
+                    break;
                 }
             }
-
             self.cpu.bus.ppu.frame_complete = false;
         }
+    }
+
+    fn draw(&mut self, context: Context, gl: &mut G2d, glyphs: &mut Glyphs) {
+        clear(BLACK_PIXEL.get_color(), gl);
 
         // Draws
         self.draw_screen(context, gl);
