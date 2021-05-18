@@ -30,6 +30,10 @@ impl Pixel {
             1.0,
         ]
     }
+
+    pub fn get_color_u8(&self) -> [u8; 4] {
+        [self.0, self.1, self.2, 255]
+    }
 }
 
 pub const BLACK_PIXEL: Pixel = Pixel(0, 0, 0);

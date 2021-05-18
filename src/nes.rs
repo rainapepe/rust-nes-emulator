@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use graphics::{clear, text, text::Text, CharacterCache, Context};
 use opengl_graphics::GlGraphics;
 use piston::Key;
-use piston_window::{G2d, Glyphs};
+use piston_window::{G2d, G2dTextureContext, Glyphs};
 
 use crate::video::{Video, BLACK_PIXEL};
 use crate::{bus::Bus, cpu::Cpu6502};
@@ -49,9 +49,9 @@ impl Nes {
         let ppu = &mut self.cpu.bus.ppu;
         // Draw pattern
         ppu.get_pattern_table(0, self.palette_table)
-            .render(720, 420, 1.8, context, gl);
+            .render_image(720, 420, 1.8, context, gl);
         ppu.get_pattern_table(1, self.palette_table)
-            .render(960, 420, 1.8, context, gl);
+            .render_image(960, 420, 1.8, context, gl);
     }
 
     fn draw_screen(&mut self, context: Context, gl: &mut G2d) {
@@ -59,7 +59,7 @@ impl Nes {
             .bus
             .ppu
             .sprite_screen
-            .render(0, 0, 2.7, context, gl);
+            .render_image(0, 0, 2.7, context, gl);
     }
 }
 
@@ -74,6 +74,21 @@ impl Video for Nes {
             }
             self.cpu.bus.ppu.frame_complete = false;
         }
+    }
+
+    fn update_textures(&mut self, texture_context: &mut G2dTextureContext) {
+        self.cpu
+            .bus
+            .ppu
+            .sprite_screen
+            .update_texture(texture_context);
+
+        let ppu = &mut self.cpu.bus.ppu;
+        // Draw pattern
+        ppu.get_pattern_table(0, self.palette_table)
+            .update_texture(texture_context);
+        ppu.get_pattern_table(1, self.palette_table)
+            .update_texture(texture_context);
     }
 
     fn draw(&mut self, context: Context, gl: &mut G2d, glyphs: &mut Glyphs) {

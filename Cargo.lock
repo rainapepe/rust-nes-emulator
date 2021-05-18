@@ -1392,6 +1392,7 @@ name = "rust-nes-emulator"
 version = "0.1.0"
 dependencies = [
  "find_folder",
+ "image",
  "piston",
  "piston2d-graphics",
  "piston2d-opengl_graphics",

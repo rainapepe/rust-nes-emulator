@@ -9,7 +9,6 @@ mod ppu;
 mod video;
 
 use nes::Nes;
-use video::Pixel;
 
 fn main() {
     // let mut nes = Nes::new_with_cartridge("roms/donkeykong.nes");

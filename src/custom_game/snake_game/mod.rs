@@ -1,13 +1,13 @@
 mod code;
 
-use graphics::{clear, CharacterCache, Context};
+use graphics::{clear, Context};
 use piston::Key;
-use piston_window::{G2d, Glyphs};
+use piston_window::{G2d, G2dTextureContext, Glyphs};
 use rand::Rng;
 
 use std::{collections::HashMap, thread, time::Duration};
 
-use crate::video::{draw_text, Frame, Pixel, Video, BLACK_PIXEL};
+use crate::video::{Frame, Pixel, Video, BLACK_PIXEL};
 use crate::{bus::Bus, video::draw_cpu};
 use crate::{cartridge::Cartridge, video::draw_code};
 use crate::{cpu::Cpu6502, video::draw_ram};
@@ -34,23 +34,20 @@ pub struct SnakeGame {
     map_assemble: HashMap<u16, String>,
     history: Vec<u16>,
     ram_offset: u16,
+    screen: Frame,
 }
 
 // Draws
 impl SnakeGame {
-    fn draw_screen(&mut self, context: Context, gl: &mut G2d) {
-        let mut frame = Frame::new(32, 32);
-
+    fn update_screen(&mut self) {
         for color_y in 0..32 {
             for color_x in 0..32 {
                 let offset = 0x0200 + (color_y * 32) + color_x;
                 let pixel = self.cpu.read(offset as u16);
 
-                frame.set_pixel(color_x, color_y, color(pixel));
+                self.screen.set_pixel(color_x, color_y, color(pixel));
             }
         }
-
-        frame.render(50, 50, 10.0, context, gl);
     }
 }
 
@@ -66,10 +63,14 @@ impl Video for SnakeGame {
             let result = rng.gen_range(1, 16);
             self.cpu.write(0xfe, result);
 
-            for _ in 0..10 {
+            loop {
+                let end_cycle = self.cpu.pc == 0x734;
                 self.cpu.cpu_clock();
                 while self.cpu.cycles > 0 {
                     self.cpu.cpu_clock();
+                }
+                if end_cycle {
+                    break;
                 }
             }
 
@@ -77,16 +78,21 @@ impl Video for SnakeGame {
                 self.history.remove(0);
             }
             self.history.push(self.cpu.pc);
+            self.update_screen();
 
-            // thread::sleep(Duration::new(0, 70_000));
+            thread::sleep(Duration::from_millis(100));
         }
+    }
+
+    fn update_textures(&mut self, texture_context: &mut G2dTextureContext) {
+        self.screen.update_texture(texture_context);
     }
 
     fn draw(&mut self, context: Context, gl: &mut G2d, glyphs: &mut Glyphs) {
         clear(BLACK_PIXEL.get_color(), gl);
 
         // Draws
-        self.draw_screen(context, gl);
+        self.screen.render_image(50, 50, 10.0, context, gl);
         draw_cpu(550, 50, &mut self.cpu, context, gl, glyphs);
         draw_code(
             550,
@@ -166,6 +172,7 @@ impl SnakeGame {
             map_assemble: HashMap::new(),
             history: vec![],
             ram_offset: 0,
+            screen: Frame::new(32, 32),
         }
     }
 

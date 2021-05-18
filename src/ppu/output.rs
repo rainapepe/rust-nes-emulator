@@ -55,7 +55,7 @@ impl Ppu2C02 {
     // 0 0 0 0 0 0 0 0	  0 0 0 0 0 0 0 0   0 0 0 0 0 0 0 0
     //
     // The planes are stored as 8 bytes of LSB, followed by 8 bytes of MSB
-    pub fn get_pattern_table<'a>(&'a mut self, i: i8, palette: u8) -> &'a Frame {
+    pub fn get_pattern_table<'a>(&'a mut self, i: i8, palette: u8) -> &'a mut Frame {
         // Loop through all 16x16 tiles
         for tile_y in 0..16 {
             for tile_x in 0..16 {
@@ -101,6 +101,6 @@ impl Ppu2C02 {
             }
         }
 
-        &self.sprite_pattern_table[i as usize]
+        &mut self.sprite_pattern_table[i as usize]
     }
 }
