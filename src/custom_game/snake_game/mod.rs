@@ -5,7 +5,7 @@ use piston::Key;
 use piston_window::{G2d, G2dTextureContext, Glyphs};
 use rand::Rng;
 
-use std::{collections::HashMap, thread, time::Duration};
+use std::{thread, time::Duration};
 
 use crate::video::{Frame, Pixel, Video, BLACK_PIXEL};
 use crate::{bus::Bus, video::draw_cpu};
@@ -31,8 +31,7 @@ fn color(byte: u8) -> Pixel {
 pub struct SnakeGame {
     pub cpu: Cpu6502,
     running: bool,
-    map_assemble: HashMap<u16, String>,
-    history: Vec<u16>,
+    history: Vec<String>,
     ram_offset: u16,
     screen: Frame,
 }
@@ -77,7 +76,7 @@ impl Video for SnakeGame {
             if self.history.len() == 5 {
                 self.history.remove(0);
             }
-            self.history.push(self.cpu.pc);
+            self.history.push(self.cpu.disassemble_instruction());
             self.update_screen();
 
             thread::sleep(Duration::from_millis(100));
@@ -94,15 +93,7 @@ impl Video for SnakeGame {
         // Draws
         self.screen.render_image(50, 50, 10.0, context, gl);
         draw_cpu(550, 50, &mut self.cpu, context, gl, glyphs);
-        draw_code(
-            550,
-            200,
-            &self.history,
-            &self.map_assemble,
-            context,
-            gl,
-            glyphs,
-        );
+        draw_code(550, 200, &self.history, context, gl, glyphs);
         draw_ram(
             550,
             400,
@@ -155,7 +146,7 @@ impl Video for SnakeGame {
                 if self.history.len() == 5 {
                     self.history.remove(0);
                 }
-                self.history.push(self.cpu.pc);
+                self.history.push(self.cpu.disassemble_instruction());
             }
             _ => {}
         }
@@ -169,7 +160,6 @@ impl SnakeGame {
         SnakeGame {
             cpu: Cpu6502::new_with_bus(bus),
             running: false,
-            map_assemble: HashMap::new(),
             history: vec![],
             ram_offset: 0,
             screen: Frame::new(32, 32),
@@ -181,7 +171,6 @@ impl SnakeGame {
         self.cpu.load(0x0600, Vec::from(GAME_CODE));
         self.cpu.pc = 0x0600;
 
-        self.map_assemble = self.cpu.disassemble(0x0600, 0x0735);
         self.start_loop("Snake Game");
     }
 }

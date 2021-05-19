@@ -18,8 +18,7 @@ pub struct Nes {
     palette_table: u8,
     cartridge: String,
     running: bool,
-    map_assemble: HashMap<u16, String>,
-    history: Vec<u16>,
+    history: Vec<String>,
     ram_offset: u16,
 }
 
@@ -72,6 +71,10 @@ impl Video for Nes {
                     break;
                 }
             }
+            if self.history.len() == 5 {
+                self.history.remove(0);
+            }
+            self.history.push(self.cpu.disassemble_instruction());
             self.cpu.bus.ppu.frame_complete = false;
         }
     }
@@ -99,15 +102,7 @@ impl Video for Nes {
         self.draw_palette(context, gl);
         self.draw_patterns(context, gl);
         draw_cpu(720, 10, &mut self.cpu, context, gl, glyphs);
-        // draw_code(
-        //     720,
-        //     150,
-        //     &self.history,
-        //     &self.map_assemble,
-        //     context,
-        //     gl,
-        //     glyphs,
-        // );
+        draw_code(720, 150, &self.history, context, gl, glyphs);
         draw_ram(
             720,
             220,
@@ -133,10 +128,15 @@ impl Video for Nes {
             Key::C => pad1.press_button(PadButton::Select),
             Key::P => self.running = !self.running,
             Key::N => {
-                self.cpu.cpu_clock();
-                while self.cpu.cycles > 0 {
-                    self.cpu.cpu_clock();
+                self.cpu.clock();
+                while self.cpu.complete() {
+                    self.cpu.clock();
                 }
+
+                if self.history.len() == 5 {
+                    self.history.remove(0);
+                }
+                self.history.push(self.cpu.disassemble_instruction());
             }
             Key::T => {
                 if self.palette_table == 7 {
@@ -200,7 +200,6 @@ impl Nes {
             cartridge: file_name.to_string(),
             running: false,
             palette_table: 0,
-            map_assemble: HashMap::new(),
             history: vec![],
             ram_offset: 0,
         }
@@ -213,8 +212,6 @@ impl Nes {
 
         self.cpu.reset();
         let cartridge = self.cartridge.to_string();
-
-        // self.map_assemble = self.cpu.disassemble(0x8000, 0xBFFF);
 
         // self.running = true;
         self.start_loop(&cartridge);

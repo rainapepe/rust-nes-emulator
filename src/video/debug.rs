@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use graphics::{types::Color, Context};
 use piston_window::*;
 
@@ -51,8 +49,7 @@ pub fn draw_cpu(
 pub fn draw_code(
     x: usize,
     y: usize,
-    history: &Vec<u16>,
-    map_assemble: &HashMap<u16, String>,
+    history: &Vec<String>,
     context: Context,
     gl: &mut G2d,
     glyphs: &mut Glyphs,
@@ -60,9 +57,7 @@ pub fn draw_code(
     let mut text = DrawText::new(x, y, context);
 
     for instruction in history {
-        if let Some(line) = map_assemble.get(&instruction) {
-            text.draw_line(line, WHITE, gl, glyphs);
-        }
+        text.draw_line(instruction, WHITE, gl, glyphs);
     }
 }
 
