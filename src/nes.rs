@@ -104,8 +104,8 @@ impl Video for Nes {
         draw_cpu(720, 10, &mut self.cpu, context, gl, glyphs);
         draw_code(720, 150, &self.history, context, gl, glyphs);
         draw_ram(
-            720,
-            220,
+            1020,
+            10,
             self.ram_offset,
             &mut self.cpu,
             10,
@@ -128,15 +128,23 @@ impl Video for Nes {
             Key::C => pad1.press_button(PadButton::Select),
             Key::P => self.running = !self.running,
             Key::N => {
-                self.cpu.clock();
-                while self.cpu.complete() {
+                // self.cpu.clock();
+                while !self.cpu.complete() {
                     self.cpu.clock();
                 }
+
+                self.cpu.clock();
+                self.cpu.clock();
+                self.cpu.clock();
 
                 if self.history.len() == 5 {
                     self.history.remove(0);
                 }
                 self.history.push(self.cpu.disassemble_instruction());
+            }
+            Key::G => {
+                println!("table1: {:?}", self.cpu.bus.ppu.table_name[0]);
+                println!("table2: {:?}", self.cpu.bus.ppu.table_name[1]);
             }
             Key::T => {
                 if self.palette_table == 7 {
@@ -212,6 +220,7 @@ impl Nes {
 
         self.cpu.reset();
         let cartridge = self.cartridge.to_string();
+        self.history.push(self.cpu.disassemble_instruction());
 
         // self.running = true;
         self.start_loop(&cartridge);

@@ -5,6 +5,7 @@ use crate::video::Frame;
 pub struct Ppu2C02 {
     // controla os tiles/sprites que serão exibidos na tela
     pub table_name: [[u8; 1024]; 2],
+    // pub table_name: Vec<Vec<u8>>, // [Vec<u8>; 2],
     // memória dos sprites/tiles
     pub table_pattern: [[u8; 4096]; 2],
     // paletas/cores
@@ -72,9 +73,19 @@ pub struct Ppu2C02 {
 
 impl Ppu2C02 {
     pub fn new(chr_rom: ChrRom) -> Ppu2C02 {
+        // let mut table_name_1 = vec![];
+        // let mut table_name_2 = vec![];
+        // table_name_1.resize(1024, 0);
+        // table_name_2.resize(1024, 0);
+        // let mut tables = vec![];
+        // tables.push(table_name_1);
+        // tables.push(table_name_2);
+
         Ppu2C02 {
             table_name: [[0; 1024]; 2],
+            // table_name: tables,
             table_pattern: [[0; 4096]; 2],
+            // table_pattern: [vec![], vec![]],
             table_palette: [0; 32],
             chr_rom,
             sprite_screen: Frame::new(256, 240),

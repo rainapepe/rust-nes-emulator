@@ -138,7 +138,12 @@ impl Cartridge {
 
         self.image_valid = true;
 
-        print_buffer_hex(&self.prg_memory, 16384);
+        // println!("0x7FFC: {:#04x}", self.prg_memory[0x7FFC]);
+        // println!("0x7FFD: {:#04x}", self.prg_memory[0x7FFC + 1]);
+        // println!("0x0000: {:#04x}", self.prg_memory[0]);
+        // println!("0x0000: {:#04x}", self.prg_memory[1]);
+
+        print_buffer_hex(&self.prg_memory, 1 * 16384);
         // print_buffer_hex(&self.chr_memory, self.chr_memory.len());
 
         // println!("load mapper {}", self.mapper.get_type());

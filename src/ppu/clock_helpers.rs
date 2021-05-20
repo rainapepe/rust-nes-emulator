@@ -311,4 +311,14 @@ impl Ppu2C02 {
 
         return (0, 0);
     }
+
+    pub fn clear_sprite_scanline(&mut self) {
+        for i in 0..8 {
+            let sprite = &mut self.sprite_scanline[i];
+            sprite.x = 0xFF;
+            sprite.y = 0xFF;
+            sprite.id = 0xFF;
+            sprite.attribute = 0xFF;
+        }
+    }
 }

@@ -152,7 +152,8 @@ impl Cpu6502 {
     }
 
     pub fn clock(&mut self) {
-        // println!("bus: {}", self.version);
+        // println!("bus: {}", self.bus.system_clock_counter);
+        // println!("puc: {}", self.pc);
         // Clocking. The heart and soul of an emulator. The running
         // frequency is controlled by whatever calls this function.
         // So here we "divide" the clock as necessary and call

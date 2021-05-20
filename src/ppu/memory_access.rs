@@ -188,6 +188,7 @@ impl Ppu2C02 {
         }
 
         if address <= 0x1FFF {
+            println!("read table_pattern");
             // If the cartridge cant map the address, have
             // a physical location ready here
             return self.table_pattern[((address & 0x1000) >> 12) as usize]
@@ -273,11 +274,10 @@ impl Ppu2C02 {
 
         if address >= 0x2000 && address <= 0x3EFF {
             address &= 0x0FFF;
-
             if let Mirror::Vertical = self.chr_rom.mirror {
                 // Vertical
                 if address <= 0x03FF {
-                    self.table_name[0][(address & 0x03FF) as usize];
+                    self.table_name[0][(address & 0x03FF) as usize] = data;
                 }
                 if address >= 0x0400 && address <= 0x07FF {
                     self.table_name[1][(address & 0x03FF) as usize] = data;
