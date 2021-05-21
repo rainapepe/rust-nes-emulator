@@ -117,7 +117,7 @@ impl Cpu6502 {
     Same as above but uses Y Register for offset
      */
     fn zpy(&mut self) -> u8 {
-        self.addr_abs = self.read(self.pc) as u16 + self.x as u16;
+        self.addr_abs = self.read(self.pc) as u16 + self.y as u16;
         self.pc_next();
         self.addr_abs &= 0x00FF;
         0
@@ -212,10 +212,14 @@ impl Cpu6502 {
     from this location
         */
     fn izx(&mut self) -> u8 {
-        let t = self.read(self.pc);
+        let t = self.read(self.pc) as u16;
         self.pc_next();
 
-        self.addr_abs = self.read_16b(((t + self.x) & 0x00FF) as u16);
+        let addr = (t + self.x as u16) & 0x00FF;
+        let lo = self.read(addr & 0x00FF) as u16;
+        let hi = self.read((addr + 1) & 0x00FF) as u16;
+
+        self.addr_abs = (hi << 8) | lo;
 
         0
     }
@@ -228,13 +232,15 @@ impl Cpu6502 {
     change in page then an additional clock cycle is required.
     */
     fn izy(&mut self) -> u8 {
-        let t = self.read(self.pc);
+        let t = self.read(self.pc) as u16;
         self.pc_next();
+        let lo = self.read(t & 0x00FF) as u16;
+        let hi = self.read((t + 1) & 0x00FF) as u16;
 
-        let addr_abs = self.read_16b((t & 0x00FF) as u16);
-        self.addr_abs = addr_abs + self.y as u16;
+        self.addr_abs = (hi << 8) | lo;
+        self.addr_abs = self.addr_abs + self.y as u16;
 
-        if (self.addr_abs & 0x00FF) != (addr_abs & 0x00FF) {
+        if (self.addr_abs & 0xFF00) != (hi << 8) {
             return 1;
         }
 

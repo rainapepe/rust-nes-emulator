@@ -1,3 +1,4 @@
+use super::debug;
 use std::collections::HashMap;
 
 use graphics::{clear, text, text::Text, CharacterCache, Context};
@@ -5,11 +6,17 @@ use opengl_graphics::GlGraphics;
 use piston::Key;
 use piston_window::{G2d, G2dTextureContext, Glyphs};
 
-use crate::video::{Video, BLACK_PIXEL};
-use crate::{bus::Bus, cpu::Cpu6502};
+use crate::{
+    bus::Bus,
+    cpu::{Cpu6502, Opcode},
+};
 use crate::{
     cartridge::Cartridge,
     video::{draw_code, draw_cpu},
+};
+use crate::{
+    cpu::Instruction,
+    video::{Video, BLACK_PIXEL},
 };
 use crate::{pad::PadButton, video::draw_ram};
 
@@ -60,6 +67,13 @@ impl Nes {
             .sprite_screen
             .render_image(0, 0, 2.7, context, gl);
     }
+
+    fn push_history(&mut self) {
+        if self.history.len() == 5 {
+            self.history.remove(0);
+        }
+        self.history.push(self.cpu.disassemble_instruction());
+    }
 }
 
 impl Video for Nes {
@@ -67,14 +81,31 @@ impl Video for Nes {
         if self.running {
             loop {
                 self.cpu.clock();
+                if self.cpu.complete() && self.cpu.bus.system_clock_counter % 3 == 0 {
+                    self.push_history();
+                    // let opcode = self.cpu.read(self.cpu.pc);
+                    // let instruction = Instruction::from(opcode);
+
+                    // if self.cpu.pc == 0xEB9E {
+                    //     self.running = false;
+                    //     break;
+                    // }
+
+                    // if opcode != debug::get_good_log(self.cpu.pc) {
+                    //     self.running = false;
+                    //     break;
+                    // }
+
+                    // if let Opcode::XXX = instruction.opcode {
+                    //     self.running = false;
+                    //     break;
+                    // }
+                }
+
                 if self.cpu.bus.ppu.frame_complete {
                     break;
                 }
             }
-            if self.history.len() == 5 {
-                self.history.remove(0);
-            }
-            self.history.push(self.cpu.disassemble_instruction());
             self.cpu.bus.ppu.frame_complete = false;
         }
     }
@@ -137,14 +168,7 @@ impl Video for Nes {
                 self.cpu.clock();
                 self.cpu.clock();
 
-                if self.history.len() == 5 {
-                    self.history.remove(0);
-                }
-                self.history.push(self.cpu.disassemble_instruction());
-            }
-            Key::G => {
-                println!("table1: {:?}", self.cpu.bus.ppu.table_name[0]);
-                println!("table2: {:?}", self.cpu.bus.ppu.table_name[1]);
+                self.push_history();
             }
             Key::T => {
                 if self.palette_table == 7 {
@@ -220,8 +244,11 @@ impl Nes {
 
         self.cpu.reset();
         let cartridge = self.cartridge.to_string();
+        // self.cpu.pc = 0xC000;
         self.history.push(self.cpu.disassemble_instruction());
 
+        // c886 - last step
+        // cb9e - teste a loucura
         // self.running = true;
         self.start_loop(&cartridge);
     }

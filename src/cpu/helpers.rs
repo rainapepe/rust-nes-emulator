@@ -76,7 +76,7 @@ impl Cpu6502 {
                 addr += 1;
                 hi = self.bus_read(addr as u16, true);
                 instruction_line +=
-                    &format!("${} {{ABS}}", to_hex(((hi as u32) << 8) | lo as u32, 2));
+                    &format!("${} {{ABS}}", to_hex(((hi as u32) << 8) | lo as u32, 4));
             }
             AddressMode::ABX => {
                 lo = self.bus_read(addr as u16, true);

@@ -5,5 +5,7 @@ mod helpers;
 mod instruction;
 mod opcode;
 
+pub use addres_mode::AddressMode;
 pub use cpu6502::*;
 pub use instruction::Instruction;
+pub use opcode::Opcode;

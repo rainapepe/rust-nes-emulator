@@ -80,6 +80,24 @@ pub enum Opcode {
     TXA,
     TXS,
     TYA,
+
+    // unofficial1
+    // https://wiki.nesdev.com/w/index.php/Programming_with_unofficial_opcodes
+    ALR,
+    ANC,
+    ARR,
+    AXS,
+    LAX,
+    SAX,
+    DCP,
+    ISC,
+    RLA,
+    RRA,
+    SLO,
+    SRE,
+    SKB,
+    IGN,
+
     XXX,
 }
 
@@ -142,6 +160,21 @@ impl Cpu6502 {
             Opcode::TXA => self.txa(),
             Opcode::TXS => self.txs(),
             Opcode::TYA => self.tya(),
+
+            Opcode::ALR => self.alr(),
+            Opcode::ANC => self.anc(),
+            Opcode::ARR => self.arr(),
+            Opcode::AXS => self.axs(),
+            Opcode::LAX => self.lax(),
+            Opcode::SAX => self.sax(),
+            Opcode::DCP => self.dcp(),
+            Opcode::ISC => self.isc(),
+            Opcode::RLA => self.rla(),
+            Opcode::RRA => self.rra(),
+            Opcode::SLO => self.slo(),
+            Opcode::SRE => self.sre(),
+            Opcode::SKB => self.skb(),
+            Opcode::IGN => self.ign(),
             Opcode::XXX => self.xxx(),
         }
     }
@@ -251,9 +284,10 @@ impl Cpu6502 {
     fn asl(&mut self) -> u8 {
         self.fetch();
 
-        self.temp = (self.fetched << 1) as u16;
+        self.temp = (self.fetched as u16) << 1;
+
         self.set_flag(Flags6502::C, (self.temp & 0xFF00) > 0);
-        self.set_flag(Flags6502::Z, self.temp == 0);
+        self.set_flag(Flags6502::Z, (self.temp & 0x00FF) == 0);
         self.set_flag(Flags6502::N, (self.temp & 0x80) > 0);
 
         if let AddressMode::IMP = self.get_instruction().addres_mode {
@@ -677,7 +711,7 @@ impl Cpu6502 {
     fn rol(&mut self) -> u8 {
         self.fetch();
 
-        self.temp = (self.fetched << 1) as u16 | self.get_flag(Flags6502::C) as u16;
+        self.temp = (self.fetched as u16) << 1 | self.get_flag(Flags6502::C) as u16;
 
         self.set_flag(Flags6502::C, (self.temp & 0xFF00) > 0);
         self.set_flag(Flags6502::Z, (self.temp & 0x00FF) == 0);
@@ -843,6 +877,281 @@ impl Cpu6502 {
         self.set_flag(Flags6502::N, (self.a & 0x80) > 0);
 
         0
+    }
+
+    /* *************** unofficial ***************  */
+    fn alr(&mut self) -> u8 {
+        self.fetch();
+        let src = self.a & self.fetched;
+        let result = src.wrapping_shr(1);
+
+        let is_carry = (src & 0x01) == 0x01;
+        let is_zero = result == 0;
+        let is_negative = (result & 0x80) == 0x80;
+
+        self.set_flag(Flags6502::C, is_carry);
+        self.set_flag(Flags6502::Z, is_zero);
+        self.set_flag(Flags6502::N, is_negative);
+
+        self.a = result;
+        0
+    }
+
+    fn anc(&mut self) -> u8 {
+        self.fetch();
+
+        let result = self.a & self.fetched;
+        let is_zero = result == 0;
+        let is_negative = (result & 0x80) == 0x80;
+        let is_carry = self.get_flag(Flags6502::N) > 0;
+
+        self.set_flag(Flags6502::C, is_carry);
+        self.set_flag(Flags6502::Z, is_zero);
+        self.set_flag(Flags6502::N, is_negative);
+        self.a = result;
+        1
+    }
+
+    fn arr(&mut self) -> u8 {
+        self.fetch();
+        let src = self.a & self.fetched;
+        let result = src.wrapping_shr(1)
+            | (if self.get_flag(Flags6502::C) > 0 {
+                0x80
+            } else {
+                0x00
+            });
+
+        let is_zero = result == 0;
+        let is_negative = (result & 0x80) == 0x80;
+        let is_carry = (result & 0x40) == 0x40;
+        let is_overflow = ((result & 0x40) ^ ((result & 0x20) << 1)) == 0x40;
+
+        self.set_flag(Flags6502::C, is_carry);
+        self.set_flag(Flags6502::Z, is_zero);
+        self.set_flag(Flags6502::N, is_negative);
+        self.set_flag(Flags6502::V, is_overflow);
+
+        self.a = result;
+        1
+    }
+
+    fn axs(&mut self) -> u8 {
+        self.fetch();
+        let src = self.a & self.fetched;
+
+        let (result, is_carry) = self.a.overflowing_sub(src);
+
+        let is_zero = result == 0;
+        let is_negative = (result & 0x80) == 0x80;
+
+        self.set_flag(Flags6502::C, is_carry);
+        self.set_flag(Flags6502::Z, is_zero);
+        self.set_flag(Flags6502::N, is_negative);
+        self.x = result;
+        1
+    }
+
+    fn lax(&mut self) -> u8 {
+        self.fetch();
+
+        let is_zero = self.fetched == 0;
+        let is_negative = (self.fetched & 0x80) == 0x80;
+
+        self.set_flag(Flags6502::Z, is_zero);
+        self.set_flag(Flags6502::N, is_negative);
+        self.a = self.fetched;
+        self.x = self.fetched;
+        1
+    }
+
+    fn sax(&mut self) -> u8 {
+        self.fetch();
+
+        let result = self.a & self.x;
+        self.write(self.addr_abs, result);
+        1
+    }
+
+    /** DEC and CMP: decrementa de um endereço e depois compara com o acumulador */
+    fn dcp(&mut self) -> u8 {
+        self.fetch();
+        // DEC
+        let dec_result = self.fetched.wrapping_sub(1);
+        self.write(self.addr_abs, dec_result);
+
+        // CMP
+        let result = self.a.wrapping_sub(dec_result);
+
+        let is_carry = self.a >= dec_result;
+        let is_zero = result == 0;
+        let is_negative = (result & 0x80) == 0x80;
+
+        self.set_flag(Flags6502::C, is_carry);
+        self.set_flag(Flags6502::Z, is_zero);
+        self.set_flag(Flags6502::N, is_negative);
+        3
+    }
+
+    fn isc(&mut self) -> u8 {
+        self.fetch();
+
+        // INC
+        let inc_result = self.fetched.wrapping_add(1);
+        self.write(self.addr_abs, inc_result);
+
+        // SBC
+        let (data1, is_carry1) = self.a.overflowing_sub(inc_result);
+        let (result, is_carry2) = data1.overflowing_sub(if self.get_flag(Flags6502::C) > 0 {
+            0
+        } else {
+            1
+        });
+
+        let is_carry = !(is_carry1 || is_carry2); // アンダーフローが発生したら0
+        let is_zero = result == 0;
+        let is_negative = (result & 0x80) == 0x80;
+        let is_overflow =
+            (((self.a ^ inc_result) & 0x80) == 0x80) && (((self.a ^ result) & 0x80) == 0x80);
+
+        self.set_flag(Flags6502::C, is_carry);
+        self.set_flag(Flags6502::Z, is_zero);
+        self.set_flag(Flags6502::N, is_negative);
+        self.set_flag(Flags6502::V, is_overflow);
+        self.a = result;
+        1
+    }
+
+    fn rla(&mut self) -> u8 {
+        self.fetch();
+
+        // ROL
+        let result_rol = self.fetched.wrapping_shl(1)
+            | (if self.get_flag(Flags6502::C) > 0 {
+                0x01
+            } else {
+                0x00
+            });
+
+        let is_carry = (self.fetched & 0x80) == 0x80;
+        self.set_flag(Flags6502::C, is_carry);
+
+        self.write(self.addr_abs, result_rol);
+
+        // AND
+        let result_and = self.a & result_rol;
+
+        let is_zero = result_and == 0;
+        let is_negative = (result_and & 0x80) == 0x80;
+
+        self.set_flag(Flags6502::Z, is_zero);
+        self.set_flag(Flags6502::N, is_negative);
+
+        self.a = result_and;
+
+        3
+    }
+
+    // ROR -> ADC
+    fn rra(&mut self) -> u8 {
+        self.fetch();
+
+        // ROR
+        let result_ror = self.fetched.wrapping_shr(1)
+            | (if self.get_flag(Flags6502::C) > 0 {
+                0x80
+            } else {
+                0x00
+            });
+
+        let is_carry_ror = (self.fetched & 0x01) == 0x01;
+        self.set_flag(Flags6502::C, is_carry_ror);
+
+        self.write(self.addr_abs, result_ror);
+
+        // ADC
+        let tmp = u16::from(self.a)
+            + u16::from(result_ror)
+            + (if self.get_flag(Flags6502::C) > 0 {
+                1
+            } else {
+                0
+            });
+        let result_adc = (tmp & 0xff) as u8;
+
+        let is_carry = tmp > 0x00ffu16;
+        let is_zero = result_adc == 0;
+        let is_negative = (result_adc & 0x80) == 0x80;
+        let is_overflow = ((self.a ^ result_adc) & (result_ror ^ result_adc) & 0x80) == 0x80;
+
+        self.set_flag(Flags6502::C, is_carry);
+        self.set_flag(Flags6502::Z, is_zero);
+        self.set_flag(Flags6502::N, is_negative);
+        self.set_flag(Flags6502::V, is_overflow);
+        self.a = result_adc;
+
+        3
+    }
+
+    // ASL -> ORA
+    fn slo(&mut self) -> u8 {
+        self.fetch();
+
+        // ASL
+        let result_asl = self.fetched.wrapping_shl(1);
+        let is_carry = (self.fetched & 0x80) == 0x80;
+        self.set_flag(Flags6502::C, is_carry);
+
+        self.write(self.addr_abs, result_asl);
+
+        // ORA
+        let result_ora = self.a | result_asl;
+
+        let is_zero = result_ora == 0;
+        let is_negative = (result_ora & 0x80) == 0x80;
+
+        self.set_flag(Flags6502::Z, is_zero);
+        self.set_flag(Flags6502::N, is_negative);
+        self.a = result_ora;
+
+        3
+    }
+
+    // LSR -> EOR
+    fn sre(&mut self) -> u8 {
+        self.fetch();
+
+        // LSR
+        let result_lsr = self.fetched.wrapping_shr(1);
+
+        let is_carry = (self.fetched & 0x01) == 0x01;
+        self.set_flag(Flags6502::C, is_carry);
+
+        self.write(self.addr_abs, result_lsr);
+
+        // EOR
+        let result_eor = self.a ^ result_lsr;
+
+        let is_zero = result_eor == 0;
+        let is_negative = (result_eor & 0x80) == 0x80;
+
+        self.set_flag(Flags6502::Z, is_zero);
+        self.set_flag(Flags6502::N, is_negative);
+        self.a = result_eor;
+
+        3
+    }
+
+    fn skb(&mut self) -> u8 {
+        self.fetch();
+
+        1
+    }
+
+    fn ign(&mut self) -> u8 {
+        self.fetch();
+
+        1
     }
 
     // This function captures illegal opcodes
