@@ -1,27 +1,18 @@
-use super::debug;
-use std::collections::HashMap;
-
-use graphics::{clear, text, text::Text, CharacterCache, Context};
-use opengl_graphics::GlGraphics;
+use graphics::{clear, Context};
 use piston::Key;
 use piston_window::{G2d, G2dTextureContext, Glyphs};
 
-use crate::{
-    bus::Bus,
-    cpu::{Cpu6502, Opcode},
-};
+use crate::video::{Video, BLACK_PIXEL};
+use crate::{bus::Bus, cpu::Cpu6502};
 use crate::{
     cartridge::Cartridge,
     video::{draw_code, draw_cpu},
 };
-use crate::{
-    cpu::Instruction,
-    video::{Video, BLACK_PIXEL},
-};
 use crate::{pad::PadButton, video::draw_ram};
 
 pub struct Nes {
-    pub cpu: Cpu6502,
+    pub debug: bool,
+    cpu: Cpu6502,
     palette_table: u8,
     cartridge: String,
     running: bool,
@@ -81,22 +72,12 @@ impl Video for Nes {
         if self.running {
             loop {
                 self.cpu.clock();
-                if self.cpu.complete() && self.cpu.bus.system_clock_counter % 3 == 0 {
+
+                if self.debug && self.cpu.complete() && self.cpu.bus.system_clock_counter % 3 == 0 {
                     self.push_history();
                     // let opcode = self.cpu.read(self.cpu.pc);
-                    // let instruction = Instruction::from(opcode);
 
                     // if self.cpu.pc == 0xEB9E {
-                    //     self.running = false;
-                    //     break;
-                    // }
-
-                    // if opcode != debug::get_good_log(self.cpu.pc) {
-                    //     self.running = false;
-                    //     break;
-                    // }
-
-                    // if let Opcode::XXX = instruction.opcode {
                     //     self.running = false;
                     //     break;
                     // }
@@ -117,12 +98,14 @@ impl Video for Nes {
             .sprite_screen
             .update_texture(texture_context);
 
-        let ppu = &mut self.cpu.bus.ppu;
-        // Draw pattern
-        ppu.get_pattern_table(0, self.palette_table)
-            .update_texture(texture_context);
-        ppu.get_pattern_table(1, self.palette_table)
-            .update_texture(texture_context);
+        if self.debug {
+            let ppu = &mut self.cpu.bus.ppu;
+            // Draw pattern
+            ppu.get_pattern_table(0, self.palette_table)
+                .update_texture(texture_context);
+            ppu.get_pattern_table(1, self.palette_table)
+                .update_texture(texture_context);
+        }
     }
 
     fn draw(&mut self, context: Context, gl: &mut G2d, glyphs: &mut Glyphs) {
@@ -130,20 +113,22 @@ impl Video for Nes {
 
         // Draws
         self.draw_screen(context, gl);
-        self.draw_palette(context, gl);
-        self.draw_patterns(context, gl);
-        draw_cpu(720, 10, &mut self.cpu, context, gl, glyphs);
-        draw_code(720, 150, &self.history, context, gl, glyphs);
-        draw_ram(
-            1020,
-            10,
-            self.ram_offset,
-            &mut self.cpu,
-            10,
-            context,
-            gl,
-            glyphs,
-        );
+        if self.debug {
+            self.draw_palette(context, gl);
+            self.draw_patterns(context, gl);
+            draw_cpu(720, 10, &mut self.cpu, context, gl, glyphs);
+            draw_code(720, 150, &self.history, context, gl, glyphs);
+            draw_ram(
+                1020,
+                10,
+                self.ram_offset,
+                &mut self.cpu,
+                10,
+                context,
+                gl,
+                glyphs,
+            );
+        }
     }
 
     fn on_buttom_press(&mut self, key: Key) {
@@ -234,6 +219,7 @@ impl Nes {
             palette_table: 0,
             history: vec![],
             ram_offset: 0,
+            debug: false,
         }
     }
 
@@ -244,7 +230,7 @@ impl Nes {
 
         self.cpu.reset();
         let cartridge = self.cartridge.to_string();
-        // self.cpu.pc = 0xC000;
+
         self.history.push(self.cpu.disassemble_instruction());
 
         // self.running = true;

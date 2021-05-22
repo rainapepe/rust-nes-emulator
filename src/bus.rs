@@ -143,6 +143,13 @@ impl Bus {
             return;
         }
 
+        if addres == 0x4014 {
+            // A write to this address initiates a DMA transfer
+            self.dma_page = data;
+            self.dma_addr = 0x00;
+            self.dma_transfer = true;
+        }
+
         // Pads
         if addres >= 0x4016 && addres <= 0x4017 {
             return match addres {

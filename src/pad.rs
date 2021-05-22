@@ -34,7 +34,7 @@ impl Pad {
     pub fn read(&mut self) -> u8 {
         let data = (self.reg << self.shift) & 0x80 > 0;
 
-        if self.pool {
+        if !self.pool {
             self.shift = (self.shift + 1) % 8;
         }
 
