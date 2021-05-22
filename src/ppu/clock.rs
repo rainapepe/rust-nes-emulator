@@ -438,7 +438,7 @@ impl Ppu2C02 {
         }
 
         let (pixel, palette) = self.get_cycle_pixel();
-        let pixel = self.get_colour_from_palette_ram(1, pixel);
+        let pixel = self.get_colour_from_palette_ram(palette, pixel);
         self.sprite_screen
             .set_pixel((self.cycle - 1) as usize, self.scanline as usize, pixel);
 

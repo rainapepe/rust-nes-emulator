@@ -114,10 +114,9 @@ impl Bus {
 
         // Pads
         if addres >= 0x4016 && addres <= 0x4017 {
-            // println!("bus->read({:#06x}) - pad", addres);
             return match addres {
-                0x4016 => self.pad1.get_reg(),
-                0x4017 => self.pad2.get_reg(),
+                0x4016 => self.pad1.read(),
+                0x4017 => self.pad2.read(),
                 _ => 0,
             };
         }
@@ -142,6 +141,15 @@ impl Bus {
             // which is the equivalent of addr % 8.
             self.ppu.cpu_write(addres & 0x0007, data);
             return;
+        }
+
+        // Pads
+        if addres >= 0x4016 && addres <= 0x4017 {
+            return match addres {
+                0x4016 => self.pad1.write(data > 0),
+                0x4017 => self.pad2.write(data > 0),
+                _ => {}
+            };
         }
     }
 }
