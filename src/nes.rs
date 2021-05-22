@@ -247,8 +247,6 @@ impl Nes {
         // self.cpu.pc = 0xC000;
         self.history.push(self.cpu.disassemble_instruction());
 
-        // c886 - last step
-        // cb9e - teste a loucura
         // self.running = true;
         self.start_loop(&cartridge);
     }

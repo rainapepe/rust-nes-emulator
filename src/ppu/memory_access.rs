@@ -41,12 +41,6 @@ impl Ppu2C02 {
                 0x0001 => 0,
                 // Status
                 0x0002 => {
-                    // Clear the vertical blanking flag
-                    self.status.set_vertical_blank(0);
-
-                    // Reset Loopy's Address latch flag
-                    self.address_latch = 0;
-
                     // Reading from the status register has the effect of resetting
                     // different parts of the circuit. Only the top three bits
                     // contain status information, however it is possible that
@@ -54,7 +48,14 @@ impl Ppu2C02 {
                     // represent the last PPU bus transaction. Some games "may"
                     // use this noise as valid data (even though they probably
                     // shouldn't)
-                    (self.status.reg & 0xE0) | (self.ppu_data_buffer & 0x1F)
+                    let data = (self.status.reg & 0xE0) | (self.ppu_data_buffer & 0x1F);
+                    // Clear the vertical blanking flag
+                    self.status.set_vertical_blank(0);
+
+                    // Reset Loopy's Address latch flag
+                    self.address_latch = 0;
+
+                    data
                 }
                 // OAM Address - Not Readable
                 0x0003 => 0,

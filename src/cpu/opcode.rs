@@ -331,7 +331,6 @@ impl Cpu6502 {
 
     fn bit(&mut self) -> u8 {
         self.fetch();
-
         self.temp = (self.a & self.fetched) as u16;
         self.set_flag(Flags6502::Z, (self.temp & 0x00FF) == 0);
         self.set_flag(Flags6502::N, (self.fetched & (1 << 7)) > 0);
