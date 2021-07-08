@@ -18,7 +18,7 @@ $ cd target/release
 $ ./rust-nes-emulator --rom game.nes
 ```
 
-## Feature & Known Issue
+## Features
 
 - [x] CPU
   - [x] Registradores

@@ -45,16 +45,26 @@ impl Cartridge {
     }
 }
 
+/**
+ * Função que le uma struct de um arquivo
+ * T => struct que será usada para ler o arquivo
+ */
 pub fn read_struct<T, R: Read>(read: &mut R) -> std::io::Result<T> {
+    // calculando o tamanho da struct em bytes
     let num_bytes = size_of::<T>();
     unsafe {
-        let mut data2 = MaybeUninit::<T>::uninit().assume_init();
-        let mut buffer = slice::from_raw_parts_mut(&mut data2 as *mut T as *mut u8, num_bytes);
+        // Aqui vamos criar uma instancia da nossa struct não inicializada
+        // para fazer isso precisamos utilizar o escopo unsafe
+        let mut data = MaybeUninit::<T>::uninit().assume_init();
+        // Vamos criar um buffer dividindo nossa struct em um array de bytes
+        // esse buffer é um espelho da nossa instancia, ou seja, eles compartilham o mesmo endereço na memória
+        let mut buffer = slice::from_raw_parts_mut(&mut data as *mut T as *mut u8, num_bytes);
 
+        // Depois de ler os bytes do arquivo para nosso buffer a nossa variavel data estava com os dados corretos
         match read.read_exact(buffer) {
-            Ok(()) => Ok(data2),
+            Ok(()) => Ok(data),
             Err(e) => {
-                forget(data2);
+                forget(data);
                 Err(e)
             }
         }
@@ -70,15 +80,22 @@ pub fn print_buffer_hex(buffer: &Vec<u8>, size: usize) {
     }
 }
 
+// Função para ler um vetor de bytes do arquivo
 pub fn read_vec(reader: &mut BufReader<File>, size: usize) -> std::io::Result<Vec<u8>> {
+    // Criando vetor e configurando seu tamanho
     let mut data: Vec<u8> = vec![];
     data.resize(size, 0);
+
+    // Calculando o numero de offsets, pois vamos ler 16 bytes de cada vez
     let offsets = size / 16;
     for y in 0..offsets {
         let offset = y * 16;
         let mut buffer: [u8; 16] = [0; 16];
+
+        // lendo o arquivo e salvando em um buffer
         reader.read(&mut buffer)?;
 
+        // Passar os dados do buffer para nosso vetor
         for i in 0..16 {
             data[offset + i] = buffer[i];
         }
@@ -94,7 +111,7 @@ impl Cartridge {
 
         // Ler o header do arquivo
         let header = read_struct::<Header, BufReader<File>>(&mut reader)?;
-        // println!("header: {:?}", header);
+
         // Se existe um "trainer" vamos reposicionar o stream para lê-lo
         if (header.mapper1 & 0x04) > 0 {
             reader.seek(SeekFrom::Current(512))?;
@@ -112,12 +129,14 @@ impl Cartridge {
 
         match file_type {
             1 => {
+                // numero de chunks para armazenar códigos (instruções)
                 self.prg_banks = header.prg_rom_chunks;
-                // self.prg_memory.resize(16384, 0);
-                // self.chr_memory.resize(8192, 0);
+                // lendo todos os bytes de instruções com base no número de chunks
                 self.prg_memory = read_vec(&mut reader, (self.prg_banks as usize) * 16384)?;
-                self.chr_banks = header.chr_rom_chunks;
 
+                // lendo quantos chunks para armazenar sprites
+                // nesse caso sempre que for 0 o tamanho do chunk para armazenar os bytes será 8192
+                self.chr_banks = header.chr_rom_chunks;
                 let chr_memory_size: usize = if self.chr_banks == 0 {
                     // Criando o CHR RAM
                     8192
@@ -125,12 +144,13 @@ impl Cartridge {
                     // Alocando para ROM
                     (self.chr_banks as usize) * 8192
                 };
-                // self.chr_memory.resize(chr_memory_size, 0);
+                // lendo todos os bytes de sprites
                 self.chr_memory = read_vec(&mut reader, chr_memory_size)?;
             }
             _ => {}
         };
 
+        // carregando o mapper correto
         match self.mapper_id {
             0 => self.mapper = Mapper::create_mapper_000(self.prg_banks, self.chr_banks),
             _ => {}
