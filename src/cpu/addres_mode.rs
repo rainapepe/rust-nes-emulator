@@ -1,16 +1,15 @@
 use super::Cpu6502;
 
-// ADDRESSING MODES
+// ADDRESSING MODES - Modos de endereçamento
 
-// The 6502 can address between 0x0000 - 0xFFFF. The high byte is often referred
-// to as the "page", and the low byte is the offset into that page. This implies
-// there are 256 pages, each containing 256 bytes.
-//
-// Several addressing modes have the potential to require an additional clock
-// cycle if they cross a page boundary. This is combined with several instructions
-// that enable this additional clock cycle. So each addressing function returns
-// a flag saying it has potential, as does each instruction. If both instruction
-// and address function return 1, then an additional clock cycle is required.
+// Modo de endereçamento é utilizado para carregar os argumentos da instrução.
+// Toda instrução é composta de um opcode e um modo de endereçamento, e assim com o modo de endereçamento
+// podemos carregar os argumentos nessesários para executar a instrução.
+
+// O processador 6502 pode acessar entre o endereço 0x0000 e 0xFFFF, onde o Byte alto é referente a página na memória
+// e assim temos 256 páginas com 256 bytes cada página.
+
+// Alguns modos de endereçamento precisam de mais ciclos e para isso retornamos os ciclos adicionais necessários para cada modo
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum AddressMode {
@@ -69,8 +68,9 @@ impl Cpu6502 {
 
     /** Address Mode: Implied.
 
-    nesse modo a instrução não recebe nenhum dado adicional, nesse caso a instrução faz coisas simples
-     */
+        Nesse modo a instrução não recebe nenhum argumento ou utiliza o acumulador como argumento, por isso
+    vamos apenas ler o acumulador
+         */
     fn imp(&mut self) -> u8 {
         self.fetched = self.a;
         0
@@ -78,8 +78,9 @@ impl Cpu6502 {
 
     /** Address Mode: Immediate.
 
-    a instrução usa o próximo byte como valor, vamos preparar para ler o endereço do próximo byte
-     */
+        Como o próprio nome diz, a instrução é imediata e utiliza o próximo byte como argumento, vamos preparar para ler o
+    endereço do próximo byte
+         */
     fn imm(&mut self) -> u8 {
         self.addr_abs = self.pc;
         self.pc_next();
@@ -88,10 +89,10 @@ impl Cpu6502 {
 
     /** Address Mode: Zero Page.
 
-        To save program bytes, zero page addressing allows you to absolutely address
-    a location in first 0xFF bytes of address range. Clearly this only requires
-    one byte instead of the usual two.
-     */
+    Nesse modo utilizaremos um endereço da página zero como argumento (0x0000 - 0x00FF), vamos ler o valor do prómimo byte
+    para montar o endereço da página zero que será utilizado.
+    Como vamos ler da página zero precisamos somente de 1 byte para saber o endereço
+    */
     fn zp0(&mut self) -> u8 {
         self.addr_abs = self.read(self.pc) as u16;
         self.pc_next();
@@ -101,10 +102,8 @@ impl Cpu6502 {
 
     /** Address Mode:  Zero Page with X Offset.
 
-        Fundamentally the same as Zero Page addressing, but the contents of the X Register
-    is added to the supplied single byte address. This is useful for iterating through
-    ranges within the first page.
-     */
+    Mesmo funcionamento do Zero Page, porém vamos utilizar o registrador x para incrementar o offset
+    */
     fn zpx(&mut self) -> u8 {
         self.addr_abs = self.read(self.pc) as u16 + self.x as u16;
         self.pc_next();
@@ -114,8 +113,8 @@ impl Cpu6502 {
 
     /** Address Mode: Zero Page with Y Offset.
 
-    Same as above but uses Y Register for offset
-     */
+    Mesma coisa do Zero Page with X Offset, porém utilizando o registrador y.
+    */
     fn zpy(&mut self) -> u8 {
         self.addr_abs = self.read(self.pc) as u16 + self.y as u16;
         self.pc_next();
@@ -125,13 +124,15 @@ impl Cpu6502 {
 
     /** Address Mode: Relative.
 
-    This address mode is exclusive to branch instructions. The address
-    must reside within -128 to +127 of the branch instruction, i.e.
-    you cant directly branch to any address in the addressable range.
-     */
+    Esse modo é exclusivo para instruções branch (desvio), o endereço deve estar
+    entre -128 e +127 relativo ao endereço atual. Vamos ler o valor do prómio byte para
+    montar o endereço relativo.
+    */
     fn rel(&mut self) -> u8 {
         self.addr_rel = self.read(self.pc) as u16;
         self.pc_next();
+
+        // Caso o primeiro bit for true então o valor é negativo
         if (self.addr_rel & 0x80) > 0 {
             self.addr_rel |= 0xFF00;
         }
@@ -141,7 +142,7 @@ impl Cpu6502 {
 
     /** Address Mode: Absolute.
 
-       A full 16-bit address is loaded and used
+       Um endereço completo de 16 bits será utilizado como argumento, vamos ler os próximos 2 bytes
     */
     fn abs(&mut self) -> u8 {
         self.addr_abs = self.read_next_16b();
@@ -151,9 +152,8 @@ impl Cpu6502 {
 
     /** Address Mode:  Absolute with X Offset.
 
-    Fundamentally the same as absolute addressing, but the contents of the X Register
-    is added to the supplied two byte address. If the resulting address changes
-    the page, an additional clock cycle is required
+    Mesma coisa do Absolute, porém utilizando o registrador x como offset.
+    Caso o endereço resultado mudar de página um ciclo adicional é necessário.
     */
     fn abx(&mut self) -> u8 {
         let addr_abs = self.read_next_16b();
