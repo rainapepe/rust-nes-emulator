@@ -2,9 +2,11 @@ use super::{Cartridge, ChrRom, PrgRom};
 
 impl PrgRom {
     pub fn read(&mut self, addr: u16) -> (bool, u8) {
+        // pegando o endereço correto do mapper
         let (result, mapped_addr) = self.mapper.cpu_map_read(addr);
 
         if result {
+            // utilizando o endereço do mapper para ler a memória de código
             return (true, self.prg_memory[mapped_addr as usize]);
         };
 
@@ -12,9 +14,11 @@ impl PrgRom {
     }
 
     pub fn write(&mut self, addr: u16, data: u8) -> bool {
+        // pegando o endereço correto do mapper
         let (result, mapped_addr) = self.mapper.cpu_map_write(addr, data);
 
         if result {
+            // utilizando o endereço do mapper para escrever na memória de código
             self.prg_memory[mapped_addr as usize] = data;
             return true;
         };
@@ -32,6 +36,7 @@ impl ChrRom {
         let (result, mapped_addr) = self.mapper.ppu_map_read(addr);
 
         if result {
+            // utilizando o endereço do mapper para ler a memória de sprites
             return (true, self.chr_memory[mapped_addr as usize]);
         };
 
