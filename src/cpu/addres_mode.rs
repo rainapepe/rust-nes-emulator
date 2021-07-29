@@ -19,7 +19,7 @@ pub enum AddressMode {
     IMM,
     /** Address Mode: Zero Page */
     ZP0,
-    /** Address Mode:  Zero Page with X Offset */
+    /** Address Mode: Zero Page with X Offset */
     ZPX,
     /** Address Mode: Zero Page with Y Offset */
     ZPY,
@@ -168,10 +168,8 @@ impl Cpu6502 {
 
     /** Address Mode:  Absolute with Y Offset.
 
-        Fundamentally the same as absolute addressing, but the contents of the Y Register
-    is added to the supplied two byte address. If the resulting address changes
-    the page, an additional clock cycle is required
-        */
+        Mesma funcionalidade do ABX porém utilizando o registrador y como offset.
+    */
     fn aby(&mut self) -> u8 {
         let addr_abs = self.read_next_16b();
         self.addr_abs = addr_abs + self.y as u16;
@@ -185,14 +183,11 @@ impl Cpu6502 {
 
     /** Address Mode: Indirect.
 
-        The supplied 16-bit address is read to get the actual 16-bit address. This is
-    instruction is unusual in that it has a bug in the hardware! To emulate its
-    function accurately, we also need to emulate this bug. If the low byte of the
-    supplied address is 0xFF, then to read the high byte of the actual address
-    we need to cross a page boundary. This doesnt actually work on the chip as
-    designed, instead it wraps back around in the same page, yielding an
-    invalid actual address
-        */
+    O endereço de 16 bits fornecido é lido para obter o endereço 16b correto, ou seja, vamos
+    ler o endereço 16 bits e o próximo endereço para formar o novo endereço de 16 bits. Essa instrução
+    tem um bug no hardware, pois quando o byte inferior (lsb) for 0xFF em vez do próximo endereço ser
+    da próxima pagina a instrução lê o byte do começo da página, vamos emular esse bug também.
+    */
     fn ind(&mut self) -> u8 {
         let ptr = self.read_next_16b();
 
